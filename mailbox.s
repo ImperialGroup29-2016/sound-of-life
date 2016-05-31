@@ -18,19 +18,19 @@
 @   r0-r3
 @ ------------------------------------------------------------------------------
 
-mailbox_read: 
-	and       r3, r0, #0xf
+mailbox_read:
+        and       r3, r0, #0xf
 	ldr       r0, =MAILBOX_BASE
 	
 wait1: 
-    ldr       r2,[r0, #0x18]
-    tst       r2,#0x40000000
-    bne       wait1
+        ldr       r2,[r0, #0x18]
+        tst       r2,#0x40000000
+        bne       wait1
         
-    ldr       r1, [r0, #0x00]
-    and       r2, r1, #0xf
-    teq       r2, r3
-    bne       wait1
+        ldr       r1, [r0, #0x00]
+        and       r2, r1, #0xf
+        teq       r2, r3
+        bne       wait1
 
 	and      r0, r1, #0xfffffff0
 	mov      pc, lr
@@ -55,10 +55,9 @@ mailbox_write:
 	ldr       r0, =MAILBOX_BASE
 
 wait2: 
-    ldr       r2, [r0, #0x18]
-    tst       r2, #0x80000000
-    bne       wait2
+        ldr       r2, [r0, #0x18]
+        tst       r2, #0x80000000
+        bne       wait2
 
 	str       r1, [r0, #0x20]
-    
 	mov       pc, lr
