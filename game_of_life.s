@@ -1,6 +1,6 @@
 .global gol_game_tick
 
-.include graphics.s
+.include "graphics.s"
 
 
 @ game_of_life
@@ -40,11 +40,11 @@ ldr r7,=0x0ffd                 @ &a
 @
 gol_main:
 
-  stmfd sp!,{r0-r14}             @ call graphic_initialise
+  stmfd sp!,{r0-r7, lr}             @ call graphic_initialise
   mov r0,r5
   mov r1,r6
   bl graphics_initialise
-  ldmfd sp!,{r0-r14}
+  ldmfd sp!,{r0-r7, lr}
 
   ldr r5,=32                     @ d1
   ldr r6,=32                     @ d2
@@ -91,11 +91,12 @@ gol_main:
   ldmfd sp!,{r14}
 
   mov r1,#0x1000000
-  gol_countdown_loop
+  gol_countdown_loop:
     cmp r1,#0
-    be gol_countdown_end
+    beq gol_countdown_end
     sub r1,r1,#1
     b gol_countdown_loop
+  gol_countdown_end:
   gol_countdown_end:
 
   stmfd sp!,{r14}
@@ -220,12 +221,12 @@ gol_game_tick:
         bl gol_set_alive
         ldmfd sp!,{r14}
         
-        stmfd sp!,{r0-r14}             @ call graphic_alive
+        stmfd sp!,{r0-r7, lr}             @ call graphic_alive
         mov r0,r1
         mov r1,r2
         mov r2,#0xffff
         bl graphics_draw_pixel
-        ldmfd sp!,{r0-r14}
+        ldmfd sp!,{r0-r7, lr}
 
         bl gol_set_alive
         ldmfd sp!,{r14}
@@ -235,12 +236,12 @@ gol_game_tick:
         bl gol_set_dead
         ldmfd sp!,{r14}
         
-        stmfd sp!,{r0-r14}             @ call graphic_dead
+        stmfd sp!,{r0-r7, lr}             @ call graphic_dead
         mov r0,r1
         mov r1,r2
         mov r2,#0
         bl graphics_draw_pixel
-        ldmfd sp!,{r0-r14}
+        ldmfd sp!,{r0-r7, lr}
 
       gol_update_end:
     @ end loop2_1 body
@@ -265,7 +266,7 @@ gol_get_alive:
   bl gol_get_status
   ldmfd sp!,{r14}
   and r3,r3,#0x80000000            @ select the alive status, which is bit 0
-  mov r3,r3,lsr,#31
+  mov r3,r3,lsr #31
   mov pc,lr                        @ return
 
 @ get_neighbours
@@ -281,7 +282,7 @@ gol_get_neighbours:
   bl gol_get_status
   ldmfd sp!,{r14}
   and r3,r3,#0x0f000000            @ select the neighbour sum, which is bit 4-7
-  mov r3,r3,lsr,#24
+  mov r3,r3,lsr #24
   mov pc,lr                        @ return
 
 @ get_status
