@@ -57,9 +57,9 @@ graphics_initialize:
 	.unreq width
 	.unreq height
 
+	mov       r1, =0x1
 	mov       r0, fb_address
 	orr       r0, #0x40000000
-	mov       r1, #0x1
 	bl        mailbox_write
 	bl        mailbox_read
 
