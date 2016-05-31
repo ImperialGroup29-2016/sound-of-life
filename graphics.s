@@ -31,11 +31,13 @@ graphics_frame_buffer:
 @ Returns:
 @   r0 - frame buffer address
 @ Clobbers:
-@   r0-r3
+@   None
 @ ------------------------------------------------------------------------------
  
 .section .text
 graphics_initialize:
+        stmfd sp!, {r2, lr}
+
 	width     .req r0
 	height    .req r1
     
@@ -45,34 +47,27 @@ graphics_initialize:
 	result     .req r0
 	movhi      result,#0
 	movhi      pc,lr
-
-	push      {r3, lr}			
-	fb_adress .req r3
+			
+	fb_address .req r2
     
-	ldr       fb_adress, =graphics_frame_buffer
-	str       width,  [r3, #0x08]
-	str       height, [r3, #0x0C]
+	ldr       fb_address, =graphics_frame_buffer
+	str       width,  [fb_address, #0x08]
+	str       height, [fb_address, #0x0C]
     
 	.unreq width
 	.unreq height
 
-	mov       r0, fb_adress
-	add       r0, #0x40000000
+	mov       r0, fb_address
+	orr       r0, #0x40000000
 	mov       r1, #0x1
 	bl        mailbox_write
-	
-	mov       r0, #0x1
 	bl        mailbox_read
-		
-	teq       result,#0
-	movne     result,#0
-	popne     {r3, pc}
 
-	mov       result, fb_adress
-	pop       {r3, pc}
+	mov       result, fb_address
 	.unreq    result
-	.unreq    fb_adress
+	.unreq    fb_address
    
+        stmfd sp!, {r2, pc}
 @ ------------------------------------------------------------------------------
 @ Draw a pixel with a given color
 @
@@ -83,13 +78,15 @@ graphics_initialize:
 @ Returns:
 @   none
 @ Clobbers:
-@   r0-r4
+@   None
 @ ------------------------------------------------------------------------------
    
 graphics_draw_pixel:
+        stmfd sp!, {r3 - r4}
+
 	px        .req r0
 	py        .req r1
-    color     .req r2
+        color     .req r2
 	
 	fb        .req r3
 	ldr       fb, =graphics_frame_buffer
@@ -107,7 +104,7 @@ graphics_draw_pixel:
 	cmp       px, width
 	movhi     pc, lr
 	
-    address   .req r3
+        address   .req r3
 	ldr       address, [fb, #0x20]
 	add       width, #1
 	mla       px, py, width, px
@@ -120,4 +117,5 @@ graphics_draw_pixel:
 	strh      color, [address]
 	.unreq address
     
+        stmfd sp!, {r3 - r4}
 	mov       pc,lr
