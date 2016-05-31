@@ -42,8 +42,8 @@ wait1:
 
 	curr       .req r3
         and        curr, mail, #0b1111
-        teq        inchan, channel
-        .unreq     inchan
+        teq        curr, channel
+        .unreq     curr
 
         bne        wait1
         .unreq     mailbox
