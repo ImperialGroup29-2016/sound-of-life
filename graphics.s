@@ -36,7 +36,7 @@ graphics_frame_buffer:
  
 .section .text
 graphics_initialize:
-        stmfd sp!, {r2, lr}
+        stmfd      sp!, {r2, lr}
 
 	width     .req r0
 	height    .req r1
@@ -50,24 +50,30 @@ graphics_initialize:
 			
 	fb_address .req r2
     
-	ldr       fb_address, =graphics_frame_buffer
-	str       width,  [fb_address, #0x08]
-	str       height, [fb_address, #0x0C]
+	ldr        fb_address, =graphics_frame_buffer
+	str        width,  [fb_address, #0x08]
+	str        height, [fb_address, #0x0C]
     
-	.unreq width
-	.unreq height
+	.unreq     width
+	.unreq     height
 
-	mov       r1, =0x1
-	mov       r0, fb_address
-	orr       r0, #0x40000000
-	bl        mailbox_write
-	bl        mailbox_read
+	mov        r0, fb_address
+	orr        r0, #0x40000000
+	mov        r1, #1
+	bl         mailbox_write
 
-	mov       result, fb_address
-	.unreq    result
-	.unreq    fb_address
+        mov        r0, #1
+	bl         mailbox_read
+
+        teq        result, #0
+        movne      result, #0
+        ldmfd      sp!, {r2, pc}
+
+	mov        result, fb_address
+	.unreq     result
+	.unreq     fb_address
    
-        stmfd sp!, {r2, pc}
+        ldmfd      sp!, {r2, pc}
 @ ------------------------------------------------------------------------------
 @ Draw a pixel with a given color
 @
@@ -82,40 +88,40 @@ graphics_initialize:
 @ ------------------------------------------------------------------------------
    
 graphics_draw_pixel:
-        stmfd sp!, {r3 - r4}
+        stmfd      sp!, {r3 - r4}
 
-	px        .req r0
-	py        .req r1
-        color     .req r2
+	px         .req r0
+	py         .req r1
+        color      .req r2
 	
-	fb        .req r3
-	ldr       fb, =graphics_frame_buffer
+	address    .req r3
+	ldr        address, =graphics_frame_buffer
+        ldr        address, [address]
 	
-	height    .req r4
-	ldr       height, [fb, #0x0C]
-	sub       height,#1
-	cmp       py, height
-	movhi     pc, lr
-	.unreq height
+	height     .req r4
+	ldr        height, [address, #0x0C]
+	sub        height, #1
+	cmp        py, height
+	movhi      pc, lr
+	.unreq     height
 	
-	width     .req r4
-	ldr       width, [fb, #0x08]
-	sub       width, #1
-	cmp       px, width
-	movhi     pc, lr
+	width      .req r4
+	ldr        width, [address, #0x08]
+	sub        width, #1
+	cmp        px, width
+	movhi      pc, lr
 	
-        address   .req r3
-	ldr       address, [fb, #0x20]
-	add       width, #1
-	mla       px, py, width, px
-	.unreq width
-	.unreq py
+	ldr        address, [address, #0x20]
+	add        width, #1
+	mla        px, py, width, px
+	.unreq     width
+	.unreq     py
     
-	add       address, px, lsl #1
-	.unreq px
+	add        address, px, lsl #1
+	.unreq     px
 	
-	strh      color, [address]
-	.unreq address
+	strh       color, [address]
+	.unreq     address
     
-        stmfd sp!, {r3 - r4}
-	mov       pc,lr
+        ldmfd      sp!, {r3 - r4}
+	mov        pc,lr

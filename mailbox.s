@@ -13,28 +13,48 @@
 @ Arguments:
 @   r0 - channel
 @ Returns:
-@   r1 
+@   r0 
 @ Clobbers:
-@   r0-r3
+@   none
 @ ------------------------------------------------------------------------------
 
 mailbox_read:
-        and       r3, r0, #0xf
-	ldr       r0, =MAILBOX_BASE
+        stmfd      sp!, {r1 - r3}
+
+        cmp        r0, #15
+        movhi      pc, lr
+
+        channel    .req r0
+        mailbox    .req r1
+ 
+	ldr        r1, =MAILBOX_BASE
 	
 wait1: 
-        ldr       r2,[r0, #0x18]
-        tst       r2,#0x40000000
-        bne       wait1
+        status     .req r2
+        ldr        status, [mailbox, #0x18]
+
+        tst        status, #0x40000000
+        .unreq     status
+        bne        wait1
         
-        ldr       r1, [r0, #0x00]
-        and       r2, r1, #0xf
-        teq       r2, r3
-        bne       wait1
+        mail       .req r2
+        ldr        mail, [mailbox, #0]
 
-	and      r0, r1, #0xfffffff0
-	mov      pc, lr
+	curr       .req r3
+        and        curr, mail, #0b1111
+        teq        inchan, channel
+        .unreq     inchan
 
+        bne        wait1
+        .unreq     mailbox
+        .unreq     channel
+
+        and        r0, mail, #0xfffffff0
+        .unreq     mail
+
+        ldmfd      sp!, {r1 - r3}
+
+        mov        pc, lr
 @ ------------------------------------------------------------------------------
 @ Writes a value to the mailbox
 @
@@ -44,20 +64,38 @@ wait1:
 @ Returns:
 @   none
 @ Clobbers:
-@   r0-r3
+@   none
 @ ------------------------------------------------------------------------------
     
 mailbox_write:
-	and       r2, r1, #0xf
-	and       r1 ,r0, #0xfffffff0
-	orr       r1, r2
+        stmfd      sp!, {r2 - r3}
+
+	tst        r0, #0b1111
+        movne      pc, lr
+
+        cmp        r1, #15
+        movhi      pc, lr
     
-	ldr       r0, =MAILBOX_BASE
+        value      .req r0
+        channel    .req r1
+        mailbox    .req r2
 
+	ldr        mailbox, =MAILBOX_BASE
+        
 wait2: 
-        ldr       r2, [r0, #0x18]
-        tst       r2, #0x80000000
-        bne       wait2
+        status     .req r3
+        ldr        status, [mailbox, #0x18]
+        tst        status, #0x80000000
+        .unreq     status
+        bne        wait2
 
-	str       r1, [r0, #0x20]
-	mov       pc, lr
+        add        value, channel
+        .unreq     channel
+
+	str        value, [mailbox, #0x20]
+        .unreq     value
+        .unreq     mailbox
+
+        ldmfd      sp!, {r2 - r3}
+
+	mov        pc, lr
