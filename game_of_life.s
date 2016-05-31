@@ -1,3 +1,8 @@
+.global gol_game_tick
+
+.include graphics.s
+
+
 @ game_of_life
 @ label_prefix : gol_
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
