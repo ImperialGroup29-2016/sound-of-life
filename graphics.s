@@ -9,7 +9,7 @@
 @ ------------------------------------------------------------------------------
 
 .section .data
-.align 12
+.align 4
 graphics_frame_buffer:
   .int 640    @ +0x00: Physical width
   .int 640    @ +0x04: Physical height
@@ -36,9 +36,7 @@ graphics_frame_buffer:
  
 .section .text
 graphics_initialize:
-    stmfd      sp!, {r2, lr}
-
-	width     .req r0
+    width     .req r0
 	height    .req r1
     
 	cmpls      width,  #4096
@@ -47,7 +45,9 @@ graphics_initialize:
 	result     .req r0
 	movhi      result,#0
 	movhi      pc,lr
-			
+		
+	stmfd      sp!, {r2, lr}
+	
 	fb_address .req r2
     
 	ldr        fb_address, =graphics_frame_buffer
@@ -57,12 +57,10 @@ graphics_initialize:
 	.unreq     width
 	.unreq     height
 
-	mov        r0, fb_address
-	orr        r0, #0x40000000
-	mov        r1, #1
+	mov        r0, #1
+	mov        r1, fb_address
+	orr        r1, #0x40000000
 	bl         mailbox_write
-
-    mov        r0, #1
 	bl         mailbox_read
 
     cmp        result, #0
@@ -91,40 +89,40 @@ success:
 @ ------------------------------------------------------------------------------
    
 graphics_draw_pixel:
-        stmfd      sp!, {r3 - r4}
+    stmfd      sp!, {r3 - r4}
 
-	px         .req r0
-	py         .req r1
+    px         .req r0
+    py         .req r1
     color      .req r2
 	
-	address    .req r3
-	ldr        address, =graphics_frame_buffer
+    address    .req r3
+    ldr        address, =graphics_frame_buffer
     ldr        address, [address]
 	
-	height     .req r4
-	ldr        height, [address, #0x0C]
-	sub        height, #1
-	cmp        py, height
-	movhi      pc, lr
-	.unreq     height
+    height     .req r4
+    ldr        height, [address, #0x0C]
+    sub        height, #1
+    cmp        py, height
+    movhi      pc, lr
+    .unreq     height
 	
-	width      .req r4
-	ldr        width, [address, #0x08]
-	sub        width, #1
-	cmp        px, width
-	movhi      pc, lr
+    width      .req r4
+    ldr        width, [address, #0x08]
+    sub        width, #1
+    cmp        px, width
+    movhi      pc, lr
 	
-	ldr        address, [address, #0x20]
-	add        width, #1
-	mla        px, py, width, px
-	.unreq     width
-	.unreq     py
+    ldr        address, [address, #0x20]
+    add        width, #1
+    mla        px, py, width, px
+    .unreq     width
+    .unreq     py
     
-	add        address, px, lsl #1
-	.unreq     px
+    add        address, px, lsl #1
+    .unreq     px
 	
-	strh       color, [address]
-	.unreq     address
+    strh       color, [address]
+    .unreq     address
     
     ldmfd      sp!, {r3 - r4}
-	mov        pc,lr
+    mov        pc,lr

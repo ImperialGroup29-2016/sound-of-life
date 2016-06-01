@@ -27,7 +27,7 @@ mailbox_read:
         channel    .req r0
         mailbox    .req r1
  
-	ldr        r1, =MAILBOX_BASE
+	    ldr        mailbox, =MAILBOX_BASE
 	
 wait1: 
         status     .req r2
@@ -40,7 +40,7 @@ wait1:
         mail       .req r2
         ldr        mail, [mailbox, #0]
 
-	curr       .req r3
+	    curr       .req r3
         and        curr, mail, #0b1111
         teq        curr, channel
         .unreq     curr
@@ -59,8 +59,8 @@ wait1:
 @ Writes a value to the mailbox
 @
 @ Arguments:
-@   r0 - data
-@   r1 - channel
+@   r0 - channel
+@   r1 - value
 @ Returns:
 @   none
 @ Clobbers:
@@ -70,17 +70,17 @@ wait1:
 mailbox_write:
         stmfd      sp!, {r2 - r3}
 
-	tst        r0, #0b1111
-        movne      pc, lr
-
-        cmp        r1, #15
+        cmp        r0, #15
         movhi      pc, lr
+        
+	    tst        r1, #0b1111
+        movne      pc, lr
     
-        value      .req r0
-        channel    .req r1
+        channel    .req r0
+        value      .req r1
         mailbox    .req r2
 
-	ldr        mailbox, =MAILBOX_BASE
+	    ldr        mailbox, =MAILBOX_BASE
         
 wait2: 
         status     .req r3
@@ -92,10 +92,10 @@ wait2:
         add        value, channel
         .unreq     channel
 
-	str        value, [mailbox, #0x20]
+	    str        value, [mailbox, #0x20]
         .unreq     value
         .unreq     mailbox
 
         ldmfd      sp!, {r2 - r3}
 
-	mov        pc, lr
+	    mov        pc, lr
