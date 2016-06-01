@@ -2,7 +2,6 @@
 .globl graphics_initialize
 .globl graphics_draw_pixel
 
-.include "mailbox.s"
 
 @ ------------------------------------------------------------------------------
 @ Frame Buffer Definition

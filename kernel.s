@@ -1,7 +1,5 @@
 .global _start
 
-.include "graphics.s"
-
 .section .text
 
 _start:
@@ -10,11 +8,11 @@ _start:
 	bl         graphics_initialize
 	
 	cmp        r0, #0
-	beq        success
+	beq        suc
 	b          fail
 	
-success:
-	b success
+suc:
+	b suc
 	
 fail:
   ldr r0, =0x20200004
