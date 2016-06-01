@@ -36,7 +36,7 @@ graphics_frame_buffer:
  
 .section .text
 graphics_initialize:
-        stmfd      sp!, {r2, lr}
+    stmfd      sp!, {r2, lr}
 
 	width     .req r0
 	height    .req r1
@@ -62,18 +62,21 @@ graphics_initialize:
 	mov        r1, #1
 	bl         mailbox_write
 
-        mov        r0, #1
+    mov        r0, #1
 	bl         mailbox_read
 
-        teq        result, #0
-        movne      result, #0
-        ldmfd      sp!, {r2, pc}
+    cmp        result, #0
+    beq        success
+    
+    mov        result, #0
+    ldmfd      sp!, {r2, pc}
 
+success:
 	mov        result, fb_address
 	.unreq     result
 	.unreq     fb_address
    
-        ldmfd      sp!, {r2, pc}
+    ldmfd      sp!, {r2, pc}
 @ ------------------------------------------------------------------------------
 @ Draw a pixel with a given color
 @
@@ -92,11 +95,11 @@ graphics_draw_pixel:
 
 	px         .req r0
 	py         .req r1
-        color      .req r2
+    color      .req r2
 	
 	address    .req r3
 	ldr        address, =graphics_frame_buffer
-        ldr        address, [address]
+    ldr        address, [address]
 	
 	height     .req r4
 	ldr        height, [address, #0x0C]
@@ -123,5 +126,5 @@ graphics_draw_pixel:
 	strh       color, [address]
 	.unreq     address
     
-        ldmfd      sp!, {r3 - r4}
+    ldmfd      sp!, {r3 - r4}
 	mov        pc,lr
