@@ -35,43 +35,42 @@ graphics_frame_buffer:
 .section .text
 graphics_initialize:
     width     .req r0
-	height    .req r1
+    height    .req r1
     
-	cmpls      width,  #4096
-	cmpls      height, #4096
-   b skip1 
-	result     .req r0
-	movhi      result,#0
-	movhi      pc,lr
-   skip1:	
-	stmfd      sp!, {lr}
+    cmpls      width,  #4096
+    cmpls      height, #4096
+    b skip1 
+    result     .req r0
+    movhi      result,#0
+    movhi      pc,lr
+skip1:	
+    stmfd      sp!, {lr}
 	
-	fb_address .req r2
+    fb_address .req r2
     
-	ldr        fb_address, =graphics_frame_buffer
-	str        width,  [fb_address, #0x08]
-	str        height, [fb_address, #0x0C]
+    ldr        fb_address, =graphics_frame_buffer
+    str        width,  [fb_address, #0x08]
+    str        height, [fb_address, #0x0C]
     
-	.unreq     width
-	.unreq     height
+    .unreq     width
+    .unreq     height
 
-	
-	ldr        r0, =0x1
-	ldr        r1, =graphics_frame_buffer
-	orr        r1, #0x40000000
-	bl         mailbox_write
-	bl         mailbox_read
+    ldr        r0, =0x1
+    ldr        r1, =graphics_frame_buffer
+    orr        r1, #0x40000000
+    bl         mailbox_write
+    bl         mailbox_read
 
     cmp        result, #0
     beq        success
     
     mov        result, #0
-    ldmfd     sp!, {pc}
+    ldmfd      sp!, {pc}
 
 success:
-	mov        result, fb_address
-	.unreq     result
-	.unreq     fb_address
+    mov        result, fb_address
+    .unreq     result
+    .unreq     fb_address
    
     ldmfd      sp!, {pc}
 @ ------------------------------------------------------------------------------
