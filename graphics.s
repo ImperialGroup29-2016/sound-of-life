@@ -49,6 +49,8 @@ skip1:
     fb_address .req r2
     
     ldr        fb_address, =graphics_frame_buffer
+    str        width,  [fb_address, #0x00]
+    str        height, [fb_address, #0x04]
     str        width,  [fb_address, #0x08]
     str        height, [fb_address, #0x0C]
     
@@ -95,7 +97,7 @@ graphics_draw_pixel:
 	
     address    .req r3
     ldr        address, =graphics_frame_buffer
-    ldr        address, [address]
+    ldr        address, [address] @what?
 	
     height     .req r4
     ldr        height, [address, #0x0C]

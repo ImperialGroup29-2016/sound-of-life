@@ -3,8 +3,8 @@
 .section .text
 
 _start:
-	mov        r0, #640
-	mov        r1, #640
+	mov        r0, #16
+	mov        r1, #16
 	bl         graphics_initialize
 	
         mov       r0, #100
