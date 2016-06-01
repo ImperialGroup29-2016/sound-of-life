@@ -9,10 +9,6 @@ _start:
 	mov        r1, #16
 	bl         graphics_initialize
 	
-	cmp        r0, #0
-	beq        success
-	b          fail
-	
 success:
 	b success
 	

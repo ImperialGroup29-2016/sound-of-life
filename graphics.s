@@ -31,7 +31,7 @@ graphics_frame_buffer:
 @ Returns:
 @   r0 - frame buffer address
 @ Clobbers:
-@   None
+@   r2
 @ ------------------------------------------------------------------------------
  
 .section .text
@@ -46,7 +46,7 @@ graphics_initialize:
 	movhi      result,#0
 	movhi      pc,lr
 		
-	stmfd      sp!, {r2, lr}
+	stmfd      sp!, {lr}
 	
 	fb_address .req r2
     
@@ -57,8 +57,9 @@ graphics_initialize:
 	.unreq     width
 	.unreq     height
 
-	mov        r0, #1
-	mov        r1, fb_address
+	
+	ldr        r0, =0x1
+	ldr        r1, =graphics_frame_buffer
 	orr        r1, #0x40000000
 	bl         mailbox_write
 	bl         mailbox_read
@@ -67,14 +68,15 @@ graphics_initialize:
     beq        success
     
     mov        result, #0
-    ldmfd      sp!, {r2, pc}
+    b          fail
+    ldmfd      sp!, {pc}
 
 success:
 	mov        result, fb_address
 	.unreq     result
 	.unreq     fb_address
    
-    ldmfd      sp!, {r2, pc}
+    ldmfd      sp!, {pc}
 @ ------------------------------------------------------------------------------
 @ Draw a pixel with a given color
 @

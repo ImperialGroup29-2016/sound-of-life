@@ -41,7 +41,7 @@ wait1:
         ldr        mail, [mailbox, #0]
 
 	    curr       .req r3
-        and        curr, mail, #0b1111
+        and        curr, mail, #0x0F
         teq        curr, channel
         .unreq     curr
 
@@ -49,7 +49,7 @@ wait1:
         .unreq     mailbox
         .unreq     channel
 
-        and        r0, mail, #0xfffffff0
+        bic        r0, mail, #0xF
         .unreq     mail
 
         ldmfd      sp!, {r1 - r3}
