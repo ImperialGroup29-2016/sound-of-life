@@ -2,8 +2,6 @@
 .globl graphics_initialize
 .globl graphics_draw_pixel
 
-.include "mailbox.s"
-
 @ ------------------------------------------------------------------------------
 @ Frame Buffer Definition
 @ ------------------------------------------------------------------------------
@@ -68,7 +66,7 @@ graphics_initialize:
     beq        success
     
     mov        result, #0
-    b          fail
+    b          flash
     ldmfd      sp!, {pc}
 
 success:
