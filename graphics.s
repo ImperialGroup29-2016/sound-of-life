@@ -39,11 +39,11 @@ graphics_initialize:
     
 	cmpls      width,  #4096
 	cmpls      height, #4096
-    
+   b skip1 
 	result     .req r0
 	movhi      result,#0
 	movhi      pc,lr
-		
+   skip1:	
 	stmfd      sp!, {lr}
 	
 	fb_address .req r2
@@ -66,8 +66,7 @@ graphics_initialize:
     beq        success
     
     mov        result, #0
-    b          flash
-    ldmfd      sp!, {pc}
+    ldmfd     sp!, {pc}
 
 success:
 	mov        result, fb_address

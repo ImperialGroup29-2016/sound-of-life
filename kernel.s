@@ -3,9 +3,15 @@
 .section .text
 
 _start:
-	mov        r0, #16
-	mov        r1, #16
+	mov        r0, #640
+	mov        r1, #640
 	bl         graphics_initialize
 	
-suc:
-	b suc
+        mov       r0, #100
+        mov       r1, #100
+        mov       r2, #0x10000
+        sub       r2,r2,#1
+        bl        graphics_draw_pixel
+
+loop:
+	b         loop
