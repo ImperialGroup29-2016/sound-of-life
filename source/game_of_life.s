@@ -1,12 +1,14 @@
 .global gol_game_tick
 .global gol_main
 
+.section .text
+
 @ game_of_life
 @ label_prefix : gol_
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-ldr r5,=32                     @ d1
-ldr r6,=32                     @ d2
-ldr r7,=0x0ffd                 @ &a
+ldr r5,=16                     @ d1
+ldr r6,=16                     @ d2
+ldr r7,=gol_matrix_address     @ &a
 
 @initial data
 @   0 1 2 3 4
@@ -38,9 +40,9 @@ ldr r7,=0x0ffd                 @ &a
 @
 gol_main:
 
-  ldr r5,=32                     @ d1
-  ldr r6,=32                     @ d2
-  ldr r7,=0x0ffd                 @ &a
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
+  ldr r7,=gol_matrix_address     @ &a
   mov r1,#0                      @ i = 0
   mov r2,#0                      @ j = 0
   stmfd sp!,{r14}
@@ -109,9 +111,9 @@ gol_main:
 @ effect
 @   advances the game of life by 1 generation
 gol_game_tick:
-  ldr r5,=32                     @ d1
-  ldr r6,=32                     @ d2
-  ldr r7,=0x0ffd                 @ &a
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
+  ldr r7,=gol_matrix_address     @ &a
   mov r1,#0                      @ i = 0
   gol_loop1:                     @ for(i = 0 -> d1)
     cmp r1,r5
@@ -212,29 +214,11 @@ gol_game_tick:
         stmfd sp!,{r14}
         bl gol_set_alive
         ldmfd sp!,{r14}
-
-        stmfd sp!,{r0-r7, lr}             @ call graphic_alive
-        mov r0,r1
-        mov r1,r2
-        ldr r2, =0xffff
-        bl graphics_draw_square
-        ldmfd sp!,{r0-r7, lr}
-
-        bl gol_set_alive
-        ldmfd sp!,{r14}
         b gol_update_end
       gol_dead:
         stmfd sp!,{r14}
         bl gol_set_dead
         ldmfd sp!,{r14}
-
-        stmfd sp!,{r0-r7, lr}             @ call graphic_dead
-        mov r0,r1
-        mov r1,r2
-        mov r2,#0
-        bl graphics_draw_square
-        ldmfd sp!,{r0-r7, lr}
-
       gol_update_end:
     @ end loop2_1 body
       add r2,r2,#1
@@ -376,6 +360,12 @@ gol_set_alive:
   stmfd sp!,{r14}
   bl gol_put
   ldmfd sp!,{r14}
+  stmfd sp!,{r14}
+  mov r0,r1
+  mov r1,r2
+  ldr r2,=0xffff
+  bl graphics_draw_square
+  ldmfd sp!,{r14}
   mov pc,lr                        @ return
 
 @ set_dead
@@ -397,4 +387,15 @@ gol_set_dead:
   stmfd sp!,{r14}
   bl gol_put
   ldmfd sp!,{r14}
+  stmfd sp!,{r14}
+  mov r0,r1
+  mov r1,r2
+  ldr r2,=0
+  bl graphics_draw_square
+  ldmfd sp!,{r14}
   mov pc,lr                        @ return
+
+.ltorg
+.section .text
+gol_matrix_address:
+  .space 1024, 0
