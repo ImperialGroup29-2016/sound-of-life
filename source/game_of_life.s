@@ -40,66 +40,56 @@ ldr r7,=gol_matrix_address     @ &a
 @
 gol_main:
 
+  stmfd sp!,{lr}
   ldr r5,=16                     @ d1
   ldr r6,=16                     @ d2
   ldr r7,=gol_matrix_address     @ &a
   mov r1,#0                      @ i = 0
   mov r2,#0                      @ j = 0
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#1                      @ i = 1
   mov r2,#0                      @ j = 0
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#0                      @ i = 0
   mov r2,#1                      @ j = 1
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#1                      @ i = 1
   mov r2,#1                      @ j = 1
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#4                      @ i = 4
   mov r2,#1                      @ j = 1
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#4                      @ i = 4
   mov r2,#2                      @ j = 2
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
   mov r1,#4                      @ i = 4
   mov r2,#3                      @ j = 3
-  stmfd sp!,{r14}
   bl gol_set_alive
-  ldmfd sp!,{r14}
-  gol_skip_import:
-
-  stmfd sp!,{r14}
-  bl gol_game_tick
-  ldmfd sp!,{r14}
+  mov r1,#13                     @ i = 13
+  mov r2,#13                     @ j = 13
+  bl gol_set_alive
 
   mov r1,#0x1000000
-  gol_countdown_loop:
+  gol_countdown_loop1:
     cmp r1,#0
-    beq gol_countdown_end
+    beq gol_countdown_end1
     sub r1,r1,#1
-    b gol_countdown_loop
-  gol_countdown_end:
-  gol_countdown_end:
+    b gol_countdown_loop1
+  gol_countdown_end1:
 
-  stmfd sp!,{r14}
   bl gol_game_tick
-  ldmfd sp!,{r14}
 
-  andeq r0,r0,r0  @ for emulator use
-  gol_break:
-    b gol_break
+  mov r1,#0x1000000
+  gol_countdown_loop2:
+    cmp r1,#0
+    beq gol_countdown_end2
+    sub r1,r1,#1
+    b gol_countdown_loop2
+  gol_countdown_end2:
+
+  bl gol_game_tick
+
+  ldmfd sp!,{pc}                        @ return
 
 @ game_tick:
 @ input
@@ -216,12 +206,11 @@ gol_game_tick:
 @ output
 @   r3 - if a[i][j] lives
 gol_get_alive:
-  stmfd sp!,{r14}
+  stmfd sp!,{lr}
   bl gol_get_status
-  ldmfd sp!,{r14}
   and r3,r3,#0x80000000            @ select the alive status, which is bit 0
-  mov r3,r3,lsr #31
-  mov pc,lr                        @ return
+  mov r3,r3,lsr #24
+  ldmfd sp!,{pc}                   @ return
 
 @ get_neighbours
 @ input
@@ -232,12 +221,11 @@ gol_get_alive:
 @ output
 @   r3 - how many alive neighbour a[i][j] has
 gol_get_neighbours:
-  stmfd sp!,{r14}
+  stmfd sp!,{lr}
   bl gol_get_status
-  ldmfd sp!,{r14}
-  and r3,r3,#0x0f000000            @ select the neighbour sum, which is bit 4-7
-  mov r3,r3,lsr #24
-  mov pc,lr                        @ return
+  and r3,r3,#0xff000000            @ select the neighbour sum, which is bit 4-7
+  mov r3,r3,lsr #31
+  ldmfd sp!,{pc}                   @ return
 
 @ get_status
 @   r1 - i coordonate
@@ -248,10 +236,12 @@ gol_get_neighbours:
 @   r3 - sensible information about a[i][j] not shifted
 @ please use the derivates get_alive and get_neighbours
 gol_get_status:
-  mul r3,r1,r6
-  add r3,r3,r2
-  add r3,r3,r7
-  ldr r3,[r3]
+  mul r4,r1,r6
+  add r4,r4,r2
+  add r4,r4,r4
+  add r4,r4,r4
+  add r4,r4,r7
+  ldr r3,[r4]
   mov pc,lr                        @ return
 
 @ add_neighbour
@@ -266,14 +256,11 @@ gol_get_status:
 @ effect
 @   neighbour[i][j]++
 gol_add_neighbour:
-  stmfd sp!,{r14}
+  stmfd sp!,{lr}
   bl gol_get_status
-  ldmfd sp!,{r14}
   add r3,r3,#0x01000000            @ add 1 alive neighbour
-  stmfd sp!,{r14}
   bl gol_put
-  ldmfd sp!,{r14}
-  mov pc,lr                        @ return
+  ldmfd sp!,{pc}                   @ return
 
 @ cycle
 @ input
@@ -314,6 +301,8 @@ gol_cycle:
 gol_put:
   mul r4,r1,r6
   add r4,r4,r2
+  add r4,r4,r4
+  add r4,r4,r4
   add r4,r4,r7
   str r3,[r4]
   mov pc,lr                        @ return
@@ -329,21 +318,18 @@ gol_put:
 @ effect
 @   a[i][j] becomes alive
 gol_set_alive:
-  stmfd sp!,{r14}
+  stmfd sp!,{lr}
   bl gol_get_status
-  ldmfd sp!,{r14}
   ldr r4,=0x00ffffff
   and r3,r3,r4                     @ restart the cell
   add r3,r3,#0x80000000            @ make the cell alive
-  stmfd sp!,{r14}
   bl gol_put
-  ldmfd sp!,{r14}
-  stmfd sp!,{r14}
+  stmfd sp!,{r0-r2}
   mov r0,r2
   ldr r2,=0xffff
   bl graphics_draw_square
-  ldmfd sp!,{r14}
-  mov pc,lr                        @ return
+  ldmfd sp!,{r0-r2}
+  ldmfd sp!,{pc}                   @ return
 
 @ set_dead
 @   r1 - i coordonate
@@ -356,22 +342,17 @@ gol_set_alive:
 @ effect
 @   a[i][j] becomes dead
 gol_set_dead:
-  stmfd sp!,{r14}
+  stmfd sp!,{lr}
   bl gol_get_status
-  ldmfd sp!,{r14}
   ldr r4,=0x00ffffff
   and r3,r3,r4                     @ restart the cell
-  stmfd sp!,{r14}
   bl gol_put
-  ldmfd sp!,{r14}
-  stmfd sp!,{r14}
   mov r0,r2
   ldr r2,=0
   bl graphics_draw_square
-  ldmfd sp!,{r14}
-  mov pc,lr                        @ return
+  ldmfd sp!,{pc}
 
 .ltorg
 .section .text
 gol_matrix_address:
-  .space 1024, 0
+  .space 2048, 0
