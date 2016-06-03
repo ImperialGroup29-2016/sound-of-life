@@ -111,21 +111,23 @@ gol_main:
 @ effect
 @   advances the game of life by 1 generation
 gol_game_tick:
+  stmfd sp!,{lr}
   ldr r5,=16                     @ d1
   ldr r6,=16                     @ d2
   ldr r7,=gol_matrix_address     @ &a
+
   mov r1,#0                      @ i = 0
   gol_loop1:                     @ for(i = 0 -> d1)
     cmp r1,r5
     beq gol_loop1_end
+
     mov r2,#0                      @ j = 0
     gol_loop1_1:                   @ for(j = 0 -> d2)
       cmp r2,r6
       beq gol_loop1_1_end
+
     @ loop1_1 body
-      stmfd sp!,{r14}
       bl gol_get_alive
-      ldmfd sp!,{r14}
       cmp r3,#0                    @ if cell is dead, no need to update neighbours
       beq gol_loop1_1_if_end
       stmfd sp!,{r2}
@@ -135,54 +137,33 @@ gol_game_tick:
       stmfd sp!,{r2}
       sub r1,r1,#1                 @ NW
       sub r2,r2,#1
-      stmfd sp!,{r14}
       bl gol_cycle
-      ldmfd sp!,{r14}
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       ldmfd sp!,{r2}               @ N
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       add r2,r2,#1                 @ NE
-      stmfd sp!,{r14}
       bl gol_cycle
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       ldmfd sp!,{r1}               @ E
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       add r1,r1,#1                 @ SE
-      stmfd sp!,{r14}
       bl gol_cycle
-      ldmfd sp!,{r14}
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       ldmfd sp!,{r2}               @ S
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       sub r2,r2,#1                 @ SW
-      stmfd sp!,{r14}
       bl gol_cycle
-      ldmfd sp!,{r14}
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       ldmfd sp!,{r1}               @ W
-      stmfd sp!,{r14}
       bl gol_add_neighbour
-      ldmfd sp!,{r14}
       ldmfd sp!,{r2}
       gol_loop1_1_if_end:
     @ end loop1_1 body
+
       add r2,r2,#1
       b gol_loop1_1
     gol_loop1_1_end:
+
     add r1,r1,#1
     b gol_loop1
   gol_loop1_end:
@@ -191,43 +172,40 @@ gol_game_tick:
   gol_loop2:                     @ for(i = 0 -> d1)
     cmp r1,r5
     beq gol_loop2_end
+
     mov r2,#0                      @ j = 0
     gol_loop2_1:                   @ for(j = 0 -> d2)
       cmp r2,r6
       beq gol_loop2_1_end
+
     @ loop2_1 body
-      stmfd sp!,{r14}
       bl gol_get_neighbours
-      ldmfd sp!,{r14}
       cmp r3,#3
       bne gol_update_endif_1
       b gol_alive
       gol_update_endif_1:
       cmp r3,#2
       bne gol_dead
-      stmfd sp!,{r14}
       bl gol_get_alive
-      ldmfd sp!,{r14}
       cmp r3,#1
       bne gol_dead
       gol_alive:
-        stmfd sp!,{r14}
         bl gol_set_alive
-        ldmfd sp!,{r14}
         b gol_update_end
       gol_dead:
-        stmfd sp!,{r14}
         bl gol_set_dead
-        ldmfd sp!,{r14}
       gol_update_end:
     @ end loop2_1 body
+
       add r2,r2,#1
       b gol_loop2_1
     gol_loop2_1_end:
+
     add r1,r1,#1
     b gol_loop2
   gol_loop2_end:
-  mov pc,lr                        @ return
+
+  ldmfd sp!,{pc}                   @ return
 
 @ get_alive
 @ input
@@ -361,8 +339,7 @@ gol_set_alive:
   bl gol_put
   ldmfd sp!,{r14}
   stmfd sp!,{r14}
-  mov r0,r1
-  mov r1,r2
+  mov r0,r2
   ldr r2,=0xffff
   bl graphics_draw_square
   ldmfd sp!,{r14}
@@ -388,8 +365,7 @@ gol_set_dead:
   bl gol_put
   ldmfd sp!,{r14}
   stmfd sp!,{r14}
-  mov r0,r1
-  mov r1,r2
+  mov r0,r2
   ldr r2,=0
   bl graphics_draw_square
   ldmfd sp!,{r14}
