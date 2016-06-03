@@ -13,16 +13,6 @@ main:
 	ldr color, =0xffff    
 
 render:
-	mov r0, #0
-	mov r1, #0
-	bl graphics_draw_square
-	
-	mov r0, #1
-	mov r1, #0
-	bl graphics_draw_square
-	
-	mov r0, #15
-	mov r1, #15
-	bl graphics_draw_square
-	
-	b render
+    bl      gol_main
+
+    b       render

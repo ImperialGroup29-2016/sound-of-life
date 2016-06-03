@@ -1,4 +1,5 @@
 .global gol_game_tick
+.global gol_main
 
 @ game_of_life
 @ label_prefix : gol_
@@ -36,12 +37,6 @@ ldr r7,=0x0ffd                 @ &a
 @ 5
 @
 gol_main:
-
-  stmfd sp!,{r0-r7, lr}             @ call graphic_initialise
-  mov r0,r5
-  mov r1,r6
-  bl graphics_initialise
-  ldmfd sp!,{r0-r7, lr}
 
   ldr r5,=32                     @ d1
   ldr r6,=32                     @ d2
