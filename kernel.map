@@ -1,0 +1,82 @@
+
+Discarded input sections
+
+ .bss           0x0000000000000000        0x0 build/framebuffer.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/framebuffer.o
+ .bss           0x0000000000000000        0x0 build/game_of_life.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/game_of_life.o
+ .bss           0x0000000000000000        0x0 build/graphics.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/graphics.o
+ .bss           0x0000000000000000        0x0 build/led_flash.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/led_flash.o
+ .bss           0x0000000000000000        0x0 build/mailbox.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/mailbox.o
+ .bss           0x0000000000000000        0x0 build/main.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/main.o
+ .bss           0x0000000000000000        0x0 build/sound.o
+ .ARM.attributes
+                0x0000000000000000       0x14 build/sound.o
+
+Memory Configuration
+
+Name             Origin             Length             Attributes
+*default*        0x0000000000000000 0xffffffffffffffff
+
+Linker script and memory map
+
+LOAD build/framebuffer.o
+LOAD build/game_of_life.o
+LOAD build/graphics.o
+LOAD build/led_flash.o
+LOAD build/mailbox.o
+LOAD build/main.o
+LOAD build/sound.o
+
+.init           0x0000000000008000        0x4
+ *(.init)
+ .init          0x0000000000008000        0x4 build/main.o
+                0x0000000000008000                _start
+
+.text           0x0000000000008020    0x30880
+ *(.text)
+ .text          0x0000000000008020       0x48 build/framebuffer.o
+                0x0000000000008020                initialise_frame_buffer
+ .text          0x0000000000008068      0x440 build/game_of_life.o
+                0x0000000000008068                set_graphics_address
+                0x0000000000008074                graphics_draw_pixel
+                0x0000000000008098                graphics_draw_square
+                0x00000000000081dc                gol_game_tick
+ .text          0x00000000000084a8       0x90 build/graphics.o
+ .text          0x0000000000008538       0x80 build/led_flash.o
+                0x0000000000008538                flash
+ .text          0x00000000000085b8       0x78 build/mailbox.o
+                0x00000000000085b8                get_mailbox_base
+                0x00000000000085c0                mailbox_write
+                0x00000000000085f4                mailbox_read
+ .text          0x0000000000008630       0x34 build/main.o
+ *fill*         0x0000000000008664       0x1c 
+ .text          0x0000000000008680    0x30220 build/sound.o
+                0x0000000000008680                setup_sound
+                0x00000000000086fc                play_sound
+
+.data           0x00000000000388a0   0x296cb4
+ *(.data)
+ .data          0x00000000000388a0       0x2c build/framebuffer.o
+                0x00000000000388a0                frame_buffer
+                0x00000000000388c8                square_size
+ .data          0x00000000000388cc        0x4 build/game_of_life.o
+ .data          0x00000000000388d0        0x4 build/graphics.o
+ .data          0x00000000000388d4        0x0 build/led_flash.o
+ .data          0x00000000000388d4        0x0 build/mailbox.o
+ .data          0x00000000000388d4        0x0 build/main.o
+ .data          0x00000000000388d4   0x296c80 build/sound.o
+
+/DISCARD/
+ *(*)
+OUTPUT(build/output.elf elf32-littlearm)
