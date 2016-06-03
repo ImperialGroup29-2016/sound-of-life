@@ -1,8 +1,5 @@
 .global gol_game_tick
 
-.include "graphics.s"
-
-
 @ game_of_life
 @ label_prefix : gol_
 @@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
@@ -225,7 +222,7 @@ gol_game_tick:
         mov r0,r1
         mov r1,r2
         ldr r2, =0xffff
-        bl graphics_draw_pixel
+        bl graphics_draw_square
         ldmfd sp!,{r0-r7, lr}
 
         bl gol_set_alive
@@ -240,7 +237,7 @@ gol_game_tick:
         mov r0,r1
         mov r1,r2
         mov r2,#0
-        bl graphics_draw_pixel
+        bl graphics_draw_square
         ldmfd sp!,{r0-r7, lr}
 
       gol_update_end:
