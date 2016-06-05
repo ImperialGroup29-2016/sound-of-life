@@ -38,7 +38,7 @@ ldr r7,=gol_matrix_address     @ &a
 @ 4   x x x
 @ 5
 @
-gol_main:
+gol_main: @ temporary function that insert some cells and ticks twice.
 
   stmfd sp!,{lr}
   ldr r5,=16                     @ d1
@@ -208,8 +208,13 @@ gol_game_tick:
 gol_get_alive:
   stmfd sp!,{lr}
   bl gol_get_status
-  and r3,r3,#0x80000000            @ select the alive status, which is bit 0
-  mov r3,r3,lsr #24
+  cmp r3,#0
+  blt gol_get_alive_else
+  mov r3,#0
+  b gol_get_alive_end
+  gol_get_alive_else:
+  mov r3,#1
+  gol_get_alive_end:
   ldmfd sp!,{pc}                   @ return
 
 @ get_neighbours
@@ -223,8 +228,7 @@ gol_get_alive:
 gol_get_neighbours:
   stmfd sp!,{lr}
   bl gol_get_status
-  and r3,r3,#0xff000000            @ select the neighbour sum, which is bit 4-7
-  mov r3,r3,lsr #31
+  and r3,r3,#0x000000ff            @ select the neighbour sum, which is bit 4-7
   ldmfd sp!,{pc}                   @ return
 
 @ get_status
@@ -258,7 +262,7 @@ gol_get_status:
 gol_add_neighbour:
   stmfd sp!,{lr}
   bl gol_get_status
-  add r3,r3,#0x01000000            @ add 1 alive neighbour
+  add r3,r3,#1                     @ add 1 alive neighbour
   bl gol_put
   ldmfd sp!,{pc}                   @ return
 
@@ -319,10 +323,7 @@ gol_put:
 @   a[i][j] becomes alive
 gol_set_alive:
   stmfd sp!,{lr}
-  bl gol_get_status
-  ldr r4,=0x00ffffff
-  and r3,r3,r4                     @ restart the cell
-  add r3,r3,#0x80000000            @ make the cell alive
+  mov r3,#0x80000000
   bl gol_put
   stmfd sp!,{r0-r2}
   mov r0,r2
@@ -343,13 +344,13 @@ gol_set_alive:
 @   a[i][j] becomes dead
 gol_set_dead:
   stmfd sp!,{lr}
-  bl gol_get_status
-  ldr r4,=0x00ffffff
-  and r3,r3,r4                     @ restart the cell
+  mov r3,#0
   bl gol_put
+  stmfd sp!,{r0-r2}
   mov r0,r2
   ldr r2,=0
   bl graphics_draw_square
+  ldmfd sp!,{r0-r2}
   ldmfd sp!,{pc}
 
 .ltorg
