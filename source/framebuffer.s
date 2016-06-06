@@ -1,5 +1,5 @@
-.global frame_buffer
-.global square_size
+.global fb_grid_size
+.global fb_square_size
 .global initialise_frame_buffer
 
 @ ------------------------------------------------------------------------------
@@ -20,8 +20,11 @@ frame_buffer:
     .int  0     @ Size
     
 .align 1
-square_size:
+fb_grid_size:
 	.int 64
+fb_square_size:
+	.int 60
+
 
 @-------------------------------------------------------------------------------
 @ Initialize Frame Buffer

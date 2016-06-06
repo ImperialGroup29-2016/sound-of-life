@@ -66,7 +66,7 @@ graphics_draw_pixel:
 @   none
 @-------------------------------------------------------------------------------
 graphics_draw_square:
-	stmfd     sp!, {r0 - r7, lr}
+	stmfd     sp!, {r0 - r8, lr}
 
     curr_x .req r0
     curr_y .req r1
@@ -78,22 +78,22 @@ graphics_draw_square:
     mov x, r0
     mov y, r1
     
-    size .req r7
-    ldr size,=square_size
-    ldr size,[size]
+    grid_size .req r7
+    ldr grid_size,=fb_grid_size
+    ldr grid_size,[grid_size]
     
-    mul curr_x, x, size
-    mul curr_y, y, size
+    square_size .req r8
+    ldr square_size,=fb_square_size
+    ldr square_size,[square_size]
     
-    sub size, #1
+    mul curr_x, x, grid_size
+    mul curr_y, y, grid_size
     
     mov max_x, curr_x
-    add max_x, size
+    add max_x, square_size
     
     mov max_y, curr_y
-    add max_y, size
-    
-    add size, #1
+    add max_y, square_size
     
     drawRow:
 		drawPixel:
@@ -103,11 +103,11 @@ graphics_draw_square:
 			cmp curr_x, max_x
 			ble drawPixel
 
-		mul curr_x, x, size
+		mul curr_x, x, grid_size
 			
 		add curr_y,#1
 		cmp curr_y, max_y
 		ble drawRow
     
-    ldmfd     sp!, {r0 - r7, pc} 
+    ldmfd     sp!, {r0 - r8, pc} 
 
