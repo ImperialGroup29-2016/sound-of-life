@@ -12,7 +12,8 @@ main:
 	color .req r2
 	ldr color, =0xffff    
 
-render:
     bl      gol_main
 
+render:
+    bl gol_game_tick
     b       render

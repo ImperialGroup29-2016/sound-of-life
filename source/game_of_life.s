@@ -12,12 +12,13 @@ ldr r7,=gol_matrix_address     @ &a
 
 @initial data
 @   0 1 2 3 4
-@ 0 x x
-@ 1 x x
-@ 2
-@ 3
-@ 4   x x x
-@ 5
+@ 0
+@ 1     x x
+@ 2   x x
+@ 3     x
+@ 4
+@ 5         
+@
 @
 @ expected results:
 @ after 1 tick
@@ -44,29 +45,20 @@ gol_main: @ temporary function that insert some cells and ticks twice.
   ldr r5,=16                     @ d1
   ldr r6,=16                     @ d2
   ldr r7,=gol_matrix_address     @ &a
-  mov r1,#0                      @ i = 0
-  mov r2,#0                      @ j = 0
+  mov r1,#0                      @ i = 1
+  mov r2,#1                      @ j = 0
   bl gol_set_alive
-  mov r1,#1                      @ i = 1
-  mov r2,#0                      @ j = 0
+  mov r1,#1                      @ i = 0
+  mov r2,#2                      @ j = 1
   bl gol_set_alive
-  mov r1,#0                      @ i = 0
-  mov r2,#1                      @ j = 1
+  mov r1,#2                      @ i = 1
+  mov r2,#0                      @ j = 1
   bl gol_set_alive
-  mov r1,#1                      @ i = 1
-  mov r2,#1                      @ j = 1
+  mov r1,#2                      @ i = 0
+  mov r2,#1                      @ j = 2
   bl gol_set_alive
-  mov r1,#4                      @ i = 4
-  mov r2,#1                      @ j = 1
-  bl gol_set_alive
-  mov r1,#4                      @ i = 4
-  mov r2,#2                      @ j = 2
-  bl gol_set_alive
-  mov r1,#4                      @ i = 4
-  mov r2,#3                      @ j = 3
-  bl gol_set_alive
-  mov r1,#13                     @ i = 13
-  mov r2,#13                     @ j = 13
+  mov r1,#2                      @ i = 2
+  mov r2,#2                      @ j = 1
   bl gol_set_alive
 
   mov r1,#0x1000000
