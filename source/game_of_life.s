@@ -164,6 +164,7 @@ gol_game_tick:
       bl gol_get_neighbours
       cmp r3,#3
       bne gol_update_endif_1
+      bl gol_get_alive
       b gol_alive
       gol_update_endif_1:
       cmp r3,#2
@@ -315,13 +316,16 @@ gol_put:
 @   a[i][j] becomes alive
 gol_set_alive:
   stmfd sp!,{lr}
-  mov r3,#0x80000000
-  bl gol_put
+  cmp r3,#0
+  bne gol_set_alive_skip_graphics
   stmfd sp!,{r0-r2}
   mov r0,r2
   ldr r2,=0xffff
   bl graphics_draw_square
   ldmfd sp!,{r0-r2}
+  gol_set_alive_skip_graphics:
+  mov r3,#0x80000000
+  bl gol_put
   ldmfd sp!,{pc}                   @ return
 
 @ set_dead
@@ -336,13 +340,16 @@ gol_set_alive:
 @   a[i][j] becomes dead
 gol_set_dead:
   stmfd sp!,{lr}
-  mov r3,#0
-  bl gol_put
+  cmp r3,#0
+  beq gol_set_dead_skip_graphics
   stmfd sp!,{r0-r2}
   mov r0,r2
   ldr r2,=0
   bl graphics_draw_square
   ldmfd sp!,{r0-r2}
+  gol_set_dead_skip_graphics:
+  mov r3,#0
+  bl gol_put
   ldmfd sp!,{pc}
 
 .ltorg
