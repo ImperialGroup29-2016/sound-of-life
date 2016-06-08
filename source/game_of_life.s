@@ -47,18 +47,23 @@ gol_main: @ temporary function that insert some cells and ticks twice.
   ldr r7,=gol_matrix_address     @ &a
   mov r1,#0                      @ i = 1
   mov r2,#1                      @ j = 0
+  mov r3,#0
   bl gol_set_alive
   mov r1,#1                      @ i = 0
   mov r2,#2                      @ j = 1
+  mov r3,#0
   bl gol_set_alive
   mov r1,#2                      @ i = 1
   mov r2,#0                      @ j = 1
+  mov r3,#0
   bl gol_set_alive
   mov r1,#2                      @ i = 0
   mov r2,#1                      @ j = 2
+  mov r3,#0
   bl gol_set_alive
   mov r1,#2                      @ i = 2
   mov r2,#2                      @ j = 1
+  mov r3,#0
   bl gol_set_alive
 
   mov r1,#0x1000000
