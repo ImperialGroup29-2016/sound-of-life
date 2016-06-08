@@ -9,6 +9,7 @@ _start:
 main:
     bl      initialise_frame_buffer
     bl      setup_sound
+    bl      read_init
 
 	color .req r2
 	ldr color, =0xffff    
@@ -16,8 +17,13 @@ main:
     bl      gol_main
 
 render:
+    bl      read_check
+    cmp r7,#0
+    beq main_skip_interrupt
+      bl    read_main
+    main_skip_interrupt:
     bl      gol_game_tick
-    bl      play_board
+@    bl      play_board
 
     b       render
 
