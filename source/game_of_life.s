@@ -173,7 +173,6 @@ gol_game_tick:
       bl gol_get_neighbours
       cmp r3,#3
       bne gol_update_endif_1
-      bl gol_get_alive
       b gol_alive
       gol_update_endif_1:
       cmp r3,#2
@@ -182,9 +181,11 @@ gol_game_tick:
       cmp r3,#1
       bne gol_dead
       gol_alive:
+        bl gol_get_alive
         bl gol_set_alive
         b gol_update_end
       gol_dead:
+        bl gol_get_alive
         bl gol_set_dead
       gol_update_end:
     @ end loop2_1 body
