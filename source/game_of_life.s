@@ -4,6 +4,7 @@
 .global gol_cycle
 .global gol_set_alive
 .global gol_set_dead
+.global gol_matrix_address
 
 .section .text
 

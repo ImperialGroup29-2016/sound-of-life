@@ -52,7 +52,8 @@ setup_sound:
 
   ldr   r0, =PWM_CTL
   ldr   r1, =0x00002161
-  str   r1, [r0]          @ Activates the channels in serializer mode using FIFO (MMIO)
+  str   r1, [r0]          @ Activates the channels in serializer
+                          @ mode using FIFO (MMIO)
   
   @ Set up PWM to use DMA
   ldr   r0, =PWM_DMAC
@@ -164,22 +165,22 @@ dma_buffer:
   .space 0x30000, 0
 
 notes:
-  note a1
-  note a2
-  note a3
-  note c1
-  note c2
   note c3
-  note d1
-  note d2
-  note f1
-  note f2
-  note f3
-  note f4
-  note g1
-  note g2
-  note g3
+  note a3
   note g4
+  note f4
+  note d2
+  note c2
+  note a2
+  note g3
+  note f3
+  note d1
+  note c1
+  note a1
+  note g2
+  note f2
+  note g1
+  note f1
 
 .section .data
 a1_start: .incbin "sounds/A1.bin"
