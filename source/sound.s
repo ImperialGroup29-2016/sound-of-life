@@ -79,13 +79,16 @@ setup_sound:
 play_sound:
   stmfd sp!, {r1 - r9, lr}
 
+  cmp   r0, #0
+  ldmeqfd sp!, {r1 - r9, pc}
+
   ldr   r1, =0x10         @ Number of sounds to load
   ldr   r2, =0x00000001   @ Sets the first bit to check
   ldr   r3, =dma_buffer   @ Buffer to write to
   ldr   r4, =notes        @ Load notes
 
   mov   r5, r3
-  ldr   r6, =0x30000
+  ldr   r6, =0x1D4C0
   mov   r7, #0
   mov   r8, #0            @ Clears registers
   mov   r9, #0
@@ -155,14 +158,14 @@ DMA_CTRL:
   .long 0x00050141    @ Attributes
   .long dma_buffer    @ Source address
   .long 0x7E20C018    @ MMIO for the PWM
-  .long 0x30000       @ Transfer length
+  .long 0x1D4C0       @ Transfer length
   .long 0             @ 2D mode stride (whatever that means)
   .long DMA_CTRL      @ Next control block address
 
 .align 4
 @ DMA Buffer - 30000h bytes, filled with 0s
 dma_buffer:
-  .space 0x30000, 0
+  .space 0x1D4C0, 0
 
 notes:
   note c3

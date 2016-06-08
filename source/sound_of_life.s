@@ -145,7 +145,20 @@ play_columns:
         ldr smatrix, =sound_rows
         bl  get_sound      
         bl  gol_get_alive
-        lsl status, row
+
+        
+        @Cheers, Paul
+        stmfd sp!, {r0-r2}
+        
+        mov r0, r2
+        ldr r2, =0xD8D8D8
+
+        cmp status, #1
+        bleq graphics_draw_square
+        
+        ldmfd sp!, {r0-r2}
+
+        lsl status, smatrix
         orr notes, status 
         add row, #1
         cmp row, rows
@@ -153,7 +166,27 @@ play_columns:
 
       bl  play_sound
       mov notes, #0
+
       mov row, #0
+      2:
+        bl gol_get_alive
+
+        @ Cheers, Paul
+        stmfd sp!, {r0-r2}
+        
+        mov   r0, r2
+        ldr   r2, =0xFFFF
+
+        cmp   status, #1
+        bleq  graphics_draw_square
+
+        ldmfd sp!, {r0-r2}
+
+        add   row, #1
+        cmp   row, rows
+        bne   2b
+        
+
       add col, #1
       cmp col, columns
       bne 1b

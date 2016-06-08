@@ -47,49 +47,26 @@ ldr r7,=gol_matrix_address     @ &a
 gol_main: @ temporary function that insert some cells and ticks twice.
 
   stmfd sp!,{lr}
-  ldr r5,=16                     @ d1
-  ldr r6,=16                     @ d2
-  ldr r7,=gol_matrix_address     @ &a
-  mov r1,#7                      @ i = 1
-  mov r2,#8                      @ j = 0
+  mov r1,#4                      @ i = 1
+  mov r2,#1                      @ j = 0
   mov r3,#0
   bl gol_set_alive
-  mov r1,#8                      @ i = 0
-  mov r2,#7                      @ j = 1
+  mov r1,#5                      @ i = 0
+  mov r2,#2                      @ j = 1
   mov r3,#0
   bl gol_set_alive
-  mov r1,#8                      @ i = 1
-  mov r2,#8                      @ j = 1
+  mov r1,#6                      @ i = 1
+  mov r2,#0                      @ j = 1
   mov r3,#0
   bl gol_set_alive
-  mov r1,#9                      @ i = 0
-  mov r2,#8                      @ j = 2
+  mov r1,#6                      @ i = 0
+  mov r2,#1                      @ j = 2
   mov r3,#0
   bl gol_set_alive
-  mov r1,#7                      @ i = 2
-  mov r2,#9                      @ j = 1
+  mov r1,#6                      @ i = 2
+  mov r2,#2                      @ j = 1
   mov r3,#0
   bl gol_set_alive
-
-  mov r1,#0x1000000
-  gol_countdown_loop1:
-    cmp r1,#0
-    beq gol_countdown_end1
-    sub r1,r1,#1
-    b gol_countdown_loop1
-  gol_countdown_end1:
-
-  bl gol_game_tick
-
-  mov r1,#0x1000000
-  gol_countdown_loop2:
-    cmp r1,#0
-    beq gol_countdown_end2
-    sub r1,r1,#1
-    b gol_countdown_loop2
-  gol_countdown_end2:
-
-  bl gol_game_tick
 
   ldmfd sp!,{pc}                        @ return
 
@@ -103,7 +80,7 @@ gol_main: @ temporary function that insert some cells and ticks twice.
 @ effect
 @   advances the game of life by 1 generation
 gol_game_tick:
-  stmfd sp!,{lr}
+  stmfd sp!,{r0-r8,lr}
   ldr r5,=16                     @ d1
   ldr r6,=16                     @ d2
   ldr r7,=gol_matrix_address     @ &a
@@ -120,33 +97,33 @@ gol_game_tick:
 
     @ loop1_1 body
       bl gol_get_alive
-      cmp r3,#0                    @ if cell is dead, no need to update neighbours
+      cmp r3,#0                      @ if cell is dead, no need to update neighbours
       beq gol_loop1_1_if_end
       stmfd sp!,{r2}
       stmfd sp!,{r1}
       stmfd sp!,{r2}
       stmfd sp!,{r1}
       stmfd sp!,{r2}
-      sub r1,r1,#1                 @ NW
+      sub r1,r1,#1                   @ NW
       sub r2,r2,#1
       bl gol_cycle
       bl gol_add_neighbour
-      ldmfd sp!,{r2}               @ N
+      ldmfd sp!,{r2}                 @ N
       bl gol_add_neighbour
-      add r2,r2,#1                 @ NE
+      add r2,r2,#1                   @ NE
       bl gol_cycle
       bl gol_add_neighbour
-      ldmfd sp!,{r1}               @ E
+      ldmfd sp!,{r1}                 @ E
       bl gol_add_neighbour
-      add r1,r1,#1                 @ SE
+      add r1,r1,#1                   @ SE
       bl gol_cycle
       bl gol_add_neighbour
-      ldmfd sp!,{r2}               @ S
+      ldmfd sp!,{r2}                 @ S
       bl gol_add_neighbour
-      sub r2,r2,#1                 @ SW
+      sub r2,r2,#1                   @ SW
       bl gol_cycle
       bl gol_add_neighbour
-      ldmfd sp!,{r1}               @ W
+      ldmfd sp!,{r1}                 @ W
       bl gol_add_neighbour
       ldmfd sp!,{r2}
       gol_loop1_1_if_end:
@@ -199,7 +176,7 @@ gol_game_tick:
     b gol_loop2
   gol_loop2_end:
 
-  ldmfd sp!,{pc}                   @ return
+  ldmfd sp!,{r0-r8,pc}           @ return
 
 @ get_alive
 @ input
@@ -210,7 +187,10 @@ gol_game_tick:
 @ output
 @   r3 - if a[i][j] lives
 gol_get_alive:
-  stmfd sp!,{lr}
+  stmfd sp!,{r4-r8,lr}
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
+  ldr r7,=gol_matrix_address     @ &a
   bl gol_get_status
   cmp r3,#0
   blt gol_get_alive_else
@@ -219,7 +199,7 @@ gol_get_alive:
   gol_get_alive_else:
   mov r3,#1
   gol_get_alive_end:
-  ldmfd sp!,{pc}                   @ return
+  ldmfd sp!,{r4-r8,pc}           @ return
 
 @ get_neighbours
 @ input
@@ -232,8 +212,8 @@ gol_get_alive:
 gol_get_neighbours:
   stmfd sp!,{lr}
   bl gol_get_status
-  and r3,r3,#0x000000ff            @ select the neighbour sum, which is bit 4-7
-  ldmfd sp!,{pc}                   @ return
+  and r3,r3,#0x000000ff          @ select the neighbour sum, which is bit 4-7
+  ldmfd sp!,{pc}                 @ return
 
 @ get_status
 @   r1 - i coordonate
@@ -244,13 +224,14 @@ gol_get_neighbours:
 @   r3 - sensible information about a[i][j] not shifted
 @ please use the derivates get_alive and get_neighbours
 gol_get_status:
+  stmfd sp!,{lr}
   mul r4,r1,r6
   add r4,r4,r2
   add r4,r4,r4
   add r4,r4,r4
   add r4,r4,r7
   ldr r3,[r4]
-  mov pc,lr                        @ return
+  ldmfd sp!,{pc}                 @ return
 
 @ add_neighbour
 @ input
@@ -266,9 +247,9 @@ gol_get_status:
 gol_add_neighbour:
   stmfd sp!,{lr}
   bl gol_get_status
-  add r3,r3,#1                     @ add 1 alive neighbour
+  add r3,r3,#1                   @ add 1 alive neighbour
   bl gol_put
-  ldmfd sp!,{pc}                   @ return
+  ldmfd sp!,{pc}                 @ return
 
 @ cycle
 @ input
@@ -279,6 +260,9 @@ gol_add_neighbour:
 @ effect
 @   it cycles around the map if a[i][j] is out of bounds
 gol_cycle:
+  stmfd sp!,{r5-r6,lr}
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
   cmp r1,#0
   bge gol_cycle_endif_1
   add r1,r1,r5
@@ -295,7 +279,7 @@ gol_cycle:
   blt gol_cycle_endif_4
   sub r2,r2,r6
   gol_cycle_endif_4:
-  mov pc,lr                        @ return
+  ldmfd sp!,{r5-r6,pc}
 
 @ put
 @   r1 - i coordonate
@@ -307,13 +291,14 @@ gol_cycle:
 @   it cycles around the map if a[i][j] is out of bounds
 @ use with care
 gol_put:
+  stmfd sp!,{lr}
   mul r4,r1,r6
   add r4,r4,r2
   add r4,r4,r4
   add r4,r4,r4
   add r4,r4,r7
   str r3,[r4]
-  mov pc,lr                        @ return
+  ldmfd sp!,{pc}
 
 @ set_alive
 @   r1 - i coordonate
@@ -326,7 +311,10 @@ gol_put:
 @ effect
 @   a[i][j] becomes alive
 gol_set_alive:
-  stmfd sp!,{lr}
+  stmfd sp!,{r0-r8,lr}
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
+  ldr r7,=gol_matrix_address     @ &a
   cmp r3,#0
   bne gol_set_alive_skip_graphics
   stmfd sp!,{r0-r2}
@@ -337,7 +325,7 @@ gol_set_alive:
   gol_set_alive_skip_graphics:
   mov r3,#0x80000000
   bl gol_put
-  ldmfd sp!,{pc}                   @ return
+  ldmfd sp!,{r0-r8,pc}           @ return
 
 @ set_dead
 @   r1 - i coordonate
@@ -350,7 +338,10 @@ gol_set_alive:
 @ effect
 @   a[i][j] becomes dead
 gol_set_dead:
-  stmfd sp!,{lr}
+  stmfd sp!,{r0-r8,lr}
+  ldr r5,=16                     @ d1
+  ldr r6,=16                     @ d2
+  ldr r7,=gol_matrix_address     @ &a
   cmp r3,#0
   beq gol_set_dead_skip_graphics
   stmfd sp!,{r0-r2}
@@ -361,7 +352,7 @@ gol_set_dead:
   gol_set_dead_skip_graphics:
   mov r3,#0
   bl gol_put
-  ldmfd sp!,{pc}
+  ldmfd sp!,{r0-r8,pc}           @ return
 
 .ltorg
 .section .text
