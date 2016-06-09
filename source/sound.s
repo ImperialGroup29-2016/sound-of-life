@@ -37,7 +37,7 @@ setup_sound:
 
   @ Set up the PWM clock
   ldr   r0, =CM_PWMDIV    @ Gets address of the clock divisor
-  ldr   r1, =0x5A002000
+  ldr   r1, =0x5A004000
   str   r1, [r0]          @ Sets the clock divisor
   ldr   r0, =CM_PWMCTL    @ Gets address of clock control
   ldr   r1, =0x5A000016
@@ -82,9 +82,6 @@ setup_sound:
 @ Gets what sounds to load in r0
 play_sound:
   stmfd sp!, {r1 - r10, lr}
-
-  @ cmp   r0, #0
-  @ ldmeqfd sp!, {r1 - r10, pc}
 
   ldr   r1, =0x10         @ Number of sounds to load
   ldr   r2, =0x00000001   @ Sets the first bit to check
@@ -154,12 +151,12 @@ play_sound:
 @ 256-bit aligned
 .align 5
 DMA_CTRL:
-  .long 0x00050141    @ Attributes
-  .long dma_buffer    @ Source address
-  .long 0x7E20C018    @ MMIO for the PWM
-  .long 0x6720       @ Transfer length
-  .long 0             @ 2D mode stride (whatever that means)
-  .long DMA_CTRL      @ Next control block address
+  .long 0x00050141        @ Attributes
+  .long dma_buffer        @ Source address
+  .long 0x7E20C018        @ MMIO for the PWM
+  .long 0x6720            @ Transfer length
+  .long 0                 @ 2D mode stride (whatever that means)
+  .long DMA_CTRL          @ Next control block address
 
 .align 4
 @ DMA Buffer - 6720 bytes, filled with 0s
