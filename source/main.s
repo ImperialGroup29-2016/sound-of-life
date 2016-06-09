@@ -20,7 +20,7 @@ main:
     mov     r4,#0                  @ signal 22 starts as 0
 
 render:
-    bl      play_columns
+    @bl      play_columns
 
     stmfd   sp!,{r3}
     bl      read_check

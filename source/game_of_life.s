@@ -1,5 +1,7 @@
-.global gol_game_tick
+@ label_prefix: gol_
+
 .global gol_main
+.global gol_game_tick
 .global gol_get_alive
 .global gol_cycle
 .global gol_set_alive
@@ -8,82 +10,75 @@
 
 .section .text
 
-@ game_of_life
-@ label_prefix : gol_
-@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@
-ldr r5,=16                     @ d1
-ldr r6,=16                     @ d2
-ldr r7,=gol_matrix_address     @ &a
-
-@initial data
-@   0 1 2 3 4
-@ 0
-@ 1     x x
-@ 2   x x
-@ 3     x
-@ 4
-@ 5         
-@
-@
-@ expected results:
-@ after 1 tick
-@   0 1 2 3 4
-@ 0 x x
-@ 1 x x
-@ 2
-@ 3     x
-@ 4     x
-@ 5     x
-@
-@ after 2 tick
-@   0 1 2 3 4
-@ 0 x x
-@ 1 x x
-@ 2   x
-@ 3
-@ 4   x x x
-@ 5
-@
-gol_main: @ temporary function that insert some cells and ticks twice.
-
-  stmfd sp!,{lr}
-  mov r1,#4                      @ i = 1
-  mov r2,#1                      @ j = 0
-  mov r3,#0
-  bl gol_set_alive
-  mov r1,#5                      @ i = 0
-  mov r2,#2                      @ j = 1
-  mov r3,#0
-  bl gol_set_alive
-  mov r1,#6                      @ i = 1
-  mov r2,#0                      @ j = 1
-  mov r3,#0
-  bl gol_set_alive
-  mov r1,#6                      @ i = 0
-  mov r2,#1                      @ j = 2
-  mov r3,#0
-  bl gol_set_alive
-  mov r1,#6                      @ i = 2
-  mov r2,#2                      @ j = 1
-  mov r3,#0
-  bl gol_set_alive
-
-  ldmfd sp!,{pc}                        @ return
-
-@ game_tick:
-@ input
-@   r5 - d1
-@   r6 - d2
-@   r7 - &a
-@ uses
-@   r1, r2, r3, r4
-@ effect
-@   advances the game of life by 1 generation
-gol_game_tick:
-  stmfd sp!,{r0-r8,lr}
+@-------------------------------------------------------------------------------
+@ gol_set_size
+@ Effect:
+@   imports information for game of life implementation
+@ Arguments:
+@   none
+@ Returns:
+@   r5 = number of lines
+@   r6 = number of columns
+@   r7 = pointer of matrix
+@ Clobbers:
+@   r5 - r7
+@-------------------------------------------------------------------------------
+gol_set_size:
   ldr r5,=16                     @ d1
   ldr r6,=16                     @ d2
   ldr r7,=gol_matrix_address     @ &a
+  mov pc,lr
+
+@-------------------------------------------------------------------------------
+@ gol_main*
+@ Effect:
+@   insert some cells.(glider)
+@ Arguments:
+@   none
+@ Returns:
+@   none
+@ Clobbers:
+@   none
+@-------------------------------------------------------------------------------
+gol_main:
+  stmfd sp!,{r0-r8,lr}
+  mov r1,#4                      @ i = 4
+  mov r2,#1                      @ j = 1
+  mov r3,#0
+  bl gol_set_alive
+  mov r1,#5                      @ i = 5
+  mov r2,#2                      @ j = 2
+  mov r3,#0
+  bl gol_set_alive
+  mov r1,#6                      @ i = 6
+  mov r2,#0                      @ j = 0
+  mov r3,#0
+  bl gol_set_alive
+  mov r1,#6                      @ i = 6
+  mov r2,#1                      @ j = 1
+  mov r3,#0
+  bl gol_set_alive
+  mov r1,#6                      @ i = 6
+  mov r2,#2                      @ j = 2
+  mov r3,#0
+  bl gol_set_alive
+
+  ldmfd sp!,{r0-r8,pc}           @ return
+
+@-------------------------------------------------------------------------------
+@ game_tick*
+@ Effect:
+@   advances the game of life by 1 generation
+@ Arguments:
+@   none
+@ Returns:
+@   none
+@ Clobbers:
+@   none
+@-------------------------------------------------------------------------------
+gol_game_tick:
+  stmfd sp!,{r0-r8,lr}
+  bl gol_set_size
 
   mov r1,#0                      @ i = 0
   gol_loop1:                     @ for(i = 0 -> d1)
@@ -178,19 +173,21 @@ gol_game_tick:
 
   ldmfd sp!,{r0-r8,pc}           @ return
 
-@ get_alive
-@ input
+@-------------------------------------------------------------------------------
+@ get_alive*
+@ Effect:
+@   finds out if a cell is alive or not
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
-@   r5 - d1
-@   r6 - d2
-@ output
-@   r3 - if a[i][j] lives
+@ Returns:
+@   r3 - if a[i][j] lives {#0 dead, #1 alive}
+@ Clobbers:
+@   r3
+@-------------------------------------------------------------------------------
 gol_get_alive:
   stmfd sp!,{r4-r8,lr}
-  ldr r5,=16                     @ d1
-  ldr r6,=16                     @ d2
-  ldr r7,=gol_matrix_address     @ &a
+  bl gol_set_size
   bl gol_get_status
   cmp r3,#0
   blt gol_get_alive_else
@@ -201,28 +198,40 @@ gol_get_alive:
   gol_get_alive_end:
   ldmfd sp!,{r4-r8,pc}           @ return
 
+@-------------------------------------------------------------------------------
 @ get_neighbours
-@ input
+@ Effect:
+@   finds out if a cell is alive or not
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
 @   r5 - d1
 @   r6 - d2
-@ output
-@   r3 - how many alive neighbour a[i][j] has
+@ Returns:
+@   r3 - how many alive neighbour a[i][j] has {#0 .. #8}
+@ Clobbers:
+@   r3, r4
+@-------------------------------------------------------------------------------
 gol_get_neighbours:
   stmfd sp!,{lr}
   bl gol_get_status
   and r3,r3,#0x000000ff          @ select the neighbour sum, which is bit 4-7
   ldmfd sp!,{pc}                 @ return
 
+@-------------------------------------------------------------------------------
 @ get_status
+@ Effect:
+@   Returns unformatted information about a cell
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
 @   r5 - d1
 @   r6 - d2
-@ output
-@   r3 - sensible information about a[i][j] not shifted
-@ please use the derivates get_alive and get_neighbours
+@ Returns:
+@   r3 - information about a[i][j] {(+-) for dead/alive, abs(r3) for neighbours}
+@ Clobbers:
+@   r3, r4
+@-------------------------------------------------------------------------------
 gol_get_status:
   stmfd sp!,{lr}
   mul r4,r1,r6
@@ -233,17 +242,20 @@ gol_get_status:
   ldr r3,[r4]
   ldmfd sp!,{pc}                 @ return
 
+@-------------------------------------------------------------------------------
 @ add_neighbour
-@ input
+@ Effect:
+@   Returns a neighbour to a cell
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
 @   r5 - d1
 @   r6 - d2
-@ uses
-@   r3
-@   r4
-@ effect
-@   neighbour[i][j]++
+@ Returns:
+@   none
+@ Clobbers:
+@   r3, r4
+@-------------------------------------------------------------------------------
 gol_add_neighbour:
   stmfd sp!,{lr}
   bl gol_get_status
@@ -251,18 +263,22 @@ gol_add_neighbour:
   bl gol_put
   ldmfd sp!,{pc}                 @ return
 
-@ cycle
-@ input
+@-------------------------------------------------------------------------------
+@ cycle*
+@ Effect:
+@   cycles around the map if a[i][j] is slightly out of bounds
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
-@   r5 - d1
-@   r6 - d2
-@ effect
-@   it cycles around the map if a[i][j] is out of bounds
+@ Returns:
+@   r1 - i coordonate
+@   r2 - j coordonate
+@ Clobbers:
+@   r1, r2
+@-------------------------------------------------------------------------------
 gol_cycle:
-  stmfd sp!,{r5-r6,lr}
-  ldr r5,=16                     @ d1
-  ldr r6,=16                     @ d2
+  stmfd sp!,{r5-r7,lr}
+  bl gol_set_size
   cmp r1,#0
   bge gol_cycle_endif_1
   add r1,r1,r5
@@ -279,17 +295,23 @@ gol_cycle:
   blt gol_cycle_endif_4
   sub r2,r2,r6
   gol_cycle_endif_4:
-  ldmfd sp!,{r5-r6,pc}
+  ldmfd sp!,{r5-r7,pc}
 
+@-------------------------------------------------------------------------------
 @ put
+@ Effect:
+@   replaces information about a cell
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
-@   r3 - the new sensible value of cell
+@   r3 - new unformatted information about a cell
 @   r5 - d1
 @   r6 - d2
-@ effect
-@   it cycles around the map if a[i][j] is out of bounds
-@ use with care
+@ Returns:
+@   none
+@ Clobbers:
+@   r4
+@-------------------------------------------------------------------------------
 gol_put:
   stmfd sp!,{lr}
   mul r4,r1,r6
@@ -300,21 +322,21 @@ gol_put:
   str r3,[r4]
   ldmfd sp!,{pc}
 
-@ set_alive
+@-------------------------------------------------------------------------------
+@ set_alive*
+@ Effect:
+@   makes a cell alive(and resets the neighbour count)
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
-@   r5 - d1
-@   r6 - d2
-@ uses
-@   r3
-@   r4
-@ effect
-@   a[i][j] becomes alive
+@ Returns:
+@   none
+@ Clobbers:
+@   none
+@-------------------------------------------------------------------------------
 gol_set_alive:
   stmfd sp!,{r0-r8,lr}
-  ldr r5,=16                     @ d1
-  ldr r6,=16                     @ d2
-  ldr r7,=gol_matrix_address     @ &a
+  bl gol_set_size
   cmp r3,#0
   bne gol_set_alive_skip_graphics
   stmfd sp!,{r0-r2}
@@ -327,21 +349,21 @@ gol_set_alive:
   bl gol_put
   ldmfd sp!,{r0-r8,pc}           @ return
 
-@ set_dead
+@-------------------------------------------------------------------------------
+@ set_dead*
+@ Effect:
+@   makes a cell dead(and resets the neighbour count)
+@ Arguments:
 @   r1 - i coordonate
 @   r2 - j coordonate
-@   r5 - d1
-@   r6 - d2
-@ uses
-@   r3
-@   r4
-@ effect
-@   a[i][j] becomes dead
+@ Returns:
+@   none
+@ Clobbers:
+@   none
+@-------------------------------------------------------------------------------
 gol_set_dead:
   stmfd sp!,{r0-r8,lr}
-  ldr r5,=16                     @ d1
-  ldr r6,=16                     @ d2
-  ldr r7,=gol_matrix_address     @ &a
+  bl gol_set_size
   cmp r3,#0
   beq gol_set_dead_skip_graphics
   stmfd sp!,{r0-r2}

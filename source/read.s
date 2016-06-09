@@ -10,6 +10,8 @@
 
 read_main:
   stmfd sp!,{r0-r9,lr}
+  mov r0,#0
+  bl play_sound
   mov r4,#0x00400000
   mov r1,#0
   mov r2,#0
