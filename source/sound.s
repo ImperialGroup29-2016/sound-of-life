@@ -89,9 +89,9 @@ setup_sound:
   mov pc, lr
 
 @-------------------------------------------------------------------------------
-@ setup_sound*
+@ play_sound*
 @ Effect:
-@   Sets PWM and DMA up to output sound
+@   Plays sounds
 @ Arguments:
 @   r0 = the sounds to be played. Each 0-15 bit corresponds to a sound.
 @ Returns:
