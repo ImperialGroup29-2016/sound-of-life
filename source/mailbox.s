@@ -6,11 +6,18 @@ get_mailbox_base:
     ldr     r0, =0x2000B880
     mov     pc, lr
 
-@-------------
-@ Inputs: r0 = what to write
-@         r1 = what mailbox to write it to
-@
-@-------------
+@------------------------------------------------------------------------------
+@ Mailbox Write
+@ Effect:
+@   Writes data to the mailbox supplied as an argument
+@ Arguments: 
+@   r0 = what to write
+@   r1 = what mailbox to write it to
+@ Returns:
+@   r0 = Result of write   
+@ Clobbers:
+@   r0, r1
+@------------------------------------------------------------------------------
 mailbox_write:
     @ Test lowest 4 bits of r0 are 0
     tst     r0, #0b1111
@@ -52,10 +59,17 @@ mailbox_write:
     ldmfd   sp!, {r2-r10, pc}
 
 
-@-----------
-@ Inputs: r0 = which mailbox to read from
-@
-@-----------
+@------------------------------------------------------------------------------
+@ Mailbox Read
+@ Effect:
+@   Reads the value in the mailbox of the supplied argument
+@ Arguments: 
+@   r0 = which mailbox to read from
+@ Returns:
+@   r0 = what was in the mailbox
+@ Clobbers:
+@   r0
+@------------------------------------------------------------------------------
 mailbox_read:
     @ Test that r0 is an existing mailbox
     cmp     r0, #15
