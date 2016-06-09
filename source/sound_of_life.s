@@ -2,10 +2,15 @@
 .global play_rows
 .global get_sound
 .global sound_rows
-
+.global sound_game_type
 
 .ltorg
 .section .data
+
+.align 2
+sound_game_type:
+  .int 0
+
 
 .align 4
 sound_rows:
@@ -102,10 +107,9 @@ play_columns:
       2:
         ldr smatrix, =sound_rows
         bl  get_sound      
-        bl  gol_get_alive
+        bl  gol_get_alive  
 
         
-        @Cheers, Paul
         stmfd sp!, {r0-r2}
         
         mov r0, r2
@@ -153,13 +157,14 @@ play_columns:
 
 
 play_rows:
-    stmfd sp!, {r0 - r6, lr}
+    stmfd sp!, {r0 - r7, lr}
 
     row     .req  r1
     col     .req  r2
     status  .req  r3
     rows    .req  r5
     columns .req  r6
+    smatrix .req  r7
     notes   .req  r0
     
     mov     notes, #0
@@ -171,8 +176,23 @@ play_rows:
       mov   col, #0
 
       2:
+        ldr smatrix, =sound_columns
+        bl  get_sound      
         bl  gol_get_alive
-        lsl status, row
+
+        
+        @Cheers, Paul
+        stmfd sp!, {r0-r2}
+        
+        mov r0, r2
+        ldr r2, =0xB02335
+
+        cmp status, #1
+        bleq graphics_draw_square
+        
+        ldmfd sp!, {r0-r2}
+
+        lsl status, smatrix
         orr notes, status 
         add col, #1
         cmp col, columns
@@ -180,8 +200,29 @@ play_rows:
 
       bl  play_sound
       mov notes, #0
+
+      mov col, #0
+      2:
+        bl gol_get_alive
+
+        @ Cheers, Paul
+        stmfd sp!, {r0-r2}
+        
+        mov   r0, r2
+        ldr   r2, =0xFFFF
+
+        cmp   status, #1
+        bleq  graphics_draw_square
+
+        ldmfd sp!, {r0-r2}
+
+        add   col, #1
+        cmp   col, columns
+        bne   2b
+        
+
       add row, #1
       cmp row, rows
       bne 1b
 
-    ldmfd sp!, {r0 - r6, pc}
+    ldmfd sp!, {r0 - r7, pc}
