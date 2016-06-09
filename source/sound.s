@@ -25,7 +25,7 @@
 
 @ Setting up the sound
 setup_sound:
-  @ Set the GPIO pins 40 and 45 to PWM
+  @ Set the GPIO pins 40 and 45
   ldr   r0, =GPIO_FSEL4   @ Selects pins 40-49
   ldr   r1, [r0]          @ loads current value
   ldr   r2, =0x00038007
@@ -86,21 +86,21 @@ play_sound:
   ldmeqfd sp!, {r0 - r9, pc}
 
   @ Wait until DMA interrupt is set
-  ldr   r0, =DMA_INT_STATUS
+  ldr   r1, =DMA_INT_STATUS
   1:
-    ldr   r1, [r0]
-    tst   r1, r1
+    ldr   r2, [r1]
+    tst   r2, r2
     beq   1b
 
   @ Reset DMA interrupt flag
-  ldr   r0, =DMA0_CS
-  ldr   r1, =0x00000005
-  str   r1, [r0]
+  ldr   r1, =DMA0_CS
+  ldr   r2, =0x00000005
+  str   r2, [r1]
 
   @ Selects the buffer
   ldr   r1, =buffer_index
   ldr   r2, [r1]
-  cmp   r2, #0
+  tst   r2, r2
   ldreq r3, =dma_buffer_0
   ldrne r3, =dma_buffer_1
   eor   r2, #1
@@ -183,10 +183,11 @@ DMA_CTRL_1:
 dma_buffer_0:
   .space 0x1D4C0, 0
 
+.align 4
 dma_buffer_1:
   .space 0x1D4C0, 0
 
-.align 2
+.align 4
 buffer_index:
     .long 0
 
