@@ -10,6 +10,8 @@
 
 read_main:
   stmfd sp!,{r0-r9,lr}
+  ldr r0,=sound_game_type
+  ldr r8,[r0]
   mov r0,#0
   bl play_sound
   mov r4,#0x00400000
@@ -23,6 +25,8 @@ read_main:
     cmp r7, #0
     beq read_next_1
     bl read_restore_tmp            @ restore the current cell
+    ldr r0,=sound_game_type
+    str r8,[r0]
     ldmfd sp!,{r0-r9,pc}           @ return if interrupt signal is broken
     read_next_1:
 
@@ -49,6 +53,20 @@ read_main:
     beq read_next_4
     bl read_toggle_square          @ toggle the cell
     read_next_4:
+
+    and r7,r3,#0x08000000          @ interpret signal 27
+    cmp r7, #0
+    beq read_next_5
+    cmp r8,#0
+    bne read_main_sig27_shift
+    mov r8,#1                      @ switch the play mode
+    bl read_place_tmp              @ draw the new temp cell
+    b read_next_5
+    read_main_sig27_shift:
+    lsl r8,#1
+    and r8,r8,#0x0000000f          @ switch the play mode
+    bl read_place_tmp              @ draw the new temp cell
+    read_next_5:
 
     bl read_wait
     b read_cycle
@@ -133,7 +151,7 @@ read_init:
   ldr r3,=0x00000000
   str r3,[r9]
   ldr r9,=0x20200028
-  ldr r3,=0x0FF00000             @ gpio 22-25
+  ldr r3,=0x2FF00000             @ gpio 22-25 and 27
   str r3,[r9]
   ldmfd sp!,{r0-r9,pc}
 
@@ -160,7 +178,15 @@ read_check:
 read_place_tmp:
   stmfd sp!,{r0-r2,lr}
   mov r0,r2
-  ldr r2,=0x8888
+  ldr r2,=0x2200
+  cmp r8,#0
+  addgt r2,r2,#0x2200
+  cmp r8,#1
+  addgt r2,r2,#0x2200
+  cmp r8,#2
+  addgt r2,r2,#0x2200
+  cmp r8,#4
+  addgt r2,r2,#0x2200
   bl graphics_draw_square
   ldmfd sp!,{r0-r2,pc}
 
