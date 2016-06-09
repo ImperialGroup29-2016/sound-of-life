@@ -1,6 +1,8 @@
 .global play_columns
 .global play_rows
-.global test_get_sound
+.global get_sound
+.global sound_rows
+
 
 .ltorg
 .section .data
@@ -25,70 +27,6 @@ sound_rows:
     .int  15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15
 
 .section .text
-test_get_sound:
-    stmfd sp!, {lr}    
-
-    ldr r7, =sound_rows
-    mov r1, #0
-    mov r2, #0
-    
-    bl  get_sound
-    
-    cmp r7, #0
-    bne flash
-
-    cmp r1, #0
-    bne flash
-
-    cmp r2, #0
-    bne flash
-
-    ldr r7, =sound_rows
-    mov r1, #5
-    mov r2, #5
-    
-    bl  get_sound
-    
-    cmp r7, #5
-    bne flash
-
-    cmp r1, #5
-    bne flash
-
-    cmp r2, #5
-    bne flash
-
-    ldr r7, =sound_rows
-    mov r1, #2
-    mov r2, #2
-    
-    bl  get_sound
-    
-    cmp r7, #2
-    bne flash
-
-    cmp r1, #2
-    bne flash
-
-    cmp r2, #2
-    bne flash
-
-    ldr r7, =sound_rows
-    mov r1, #15
-    mov r2, #15
-    
-    bl  get_sound
-    
-    cmp r7, #15
-    bne flash
-
-    cmp r1, #15
-    bne flash
-
-    cmp r2, #15
-    bne flash
-
-    ldmfd sp!, {pc}
 
 @--------------------------------------------------------
 @ Arguments supplied:
@@ -103,14 +41,13 @@ test_get_sound:
 get_sound:
     stmfd sp!, {r0-r6, lr}
 
-    mov r5, #16
-    mov r6, #16
+    mov r6, #16       @ r6 = no of cols 
     mul r4, r1, r6
     add r4, r4, r2
     mov r3, #4
-    mul r4, r4, r3
-    add r4, r4, r7
-    ldr r7, [r4]
+    mul r5, r4, r3
+    add r5, r5, r7
+    ldr r7, [r5]
 
     ldmfd sp!, {r0-r6, pc}
 
