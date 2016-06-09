@@ -25,7 +25,6 @@
 
 @ Setting up the sound
 setup_sound:
-
   @ Set the GPIO pins 40 and 45 to PWM
   ldr   r0, =GPIO_FSEL4   @ Selects pins 40-49
   ldr   r1, [r0]          @ loads current value
@@ -67,24 +66,49 @@ setup_sound:
 
   @ Set control block to use
   ldr   r0, =DMA0_CONBLK
-  adr   r1, DMA_CTRL
+  adr   r1, DMA_CTRL_0
+  str   r1, [r0]
+
+  @ Start DMA0
+  ldr   r0, =DMA0_CS
+  ldr   r1, =0x00000001
   str   r1, [r0]
 
   @ Return
   mov pc, lr
 
 
-
 @ Gets what sounds to load in r0
 play_sound:
-  stmfd sp!, {r1 - r9, lr}
+  stmfd sp!, {r0 - r9, lr}
 
-  cmp   r0, #0
-  ldmeqfd sp!, {r1 - r9, pc}
+  cmp   r0, #0                  @ Returns if no sounds has to be played
+  ldmeqfd sp!, {r0 - r9, pc}
 
+  @ Wait until DMA interrupt is set
+  ldr   r0, =DMA_INT_STATUS
+  1:
+    ldr   r1, [r0]
+    tst   r1, r1
+    beq   1b
+
+  @ Reset DMA interrupt flag
+  ldr   r0, =DMA0_CS
+  ldr   r1, =0x00000005
+  str   r1, [r0]
+
+  @ Selects the buffer
+  ldr   r1, =buffer_index
+  ldr   r2, [r1]
+  cmp   r2, #0
+  ldreq r3, =dma_buffer_0
+  ldrne r3, =dma_buffer_1
+  eor   r2, #1
+  str   r2, [r1]
+
+  @ Initialize the notes checking loop
   ldr   r1, =0x10         @ Number of sounds to load
   ldr   r2, =0x00000001   @ Sets the first bit to check
-  ldr   r3, =dma_buffer   @ Buffer to write to
   ldr   r4, =notes        @ Load notes
 
   mov   r5, r3
@@ -119,8 +143,8 @@ play_sound:
       
       strh  r8, [r5], #4  @ Stores new sample
 
-      cmp   r6, r7
-      blt   2b            @ If end of sample reached, end
+      cmp   r6, r7        @ If end of sample reached, end. 
+      blt   2b            @ This works because the biggest sample is the same size as the buffer
 
   3:
     lsl   r2, #1
@@ -128,25 +152,8 @@ play_sound:
     subs  r1, r1, #1
     bne   1b
 
-  @ Start DMA0
-  ldr   r0, =DMA0_CS
-  ldr   r1, =0x00000001
-  str   r1, [r0]
-
-  @ Wait until DMA INT is set
-  ldr   r0, =DMA_INT_STATUS
-  1:
-    ldr   r1, [r0]
-    tst   r1, r1
-    beq   1b
-
-  @ Stop DMA0 and reset DMA INT 
-  ldr   r0, =DMA0_CS
-  ldr   r1, =0x00000004
-  str   r1, [r0]
-
   @ Return
-  ldmfd sp!, {r1 - r9, pc}
+  ldmfd sp!, {r0 - r9, pc}
 
 .ltorg
 .section .text
@@ -154,18 +161,34 @@ play_sound:
 
 @ 256-bit aligned
 .align 5
-DMA_CTRL:
+DMA_CTRL_0:
   .long 0x00050141    @ Attributes
-  .long dma_buffer    @ Source address
+  .long dma_buffer_0  @ Source address
   .long 0x7E20C018    @ MMIO for the PWM
   .long 0x1D4C0       @ Transfer length
   .long 0             @ 2D mode stride (whatever that means)
-  .long DMA_CTRL      @ Next control block address
+  .long DMA_CTRL_1    @ Next control block address
+
+.align 5
+DMA_CTRL_1:
+  .long 0x00050141    @ Attributes
+  .long dma_buffer_1  @ Source address
+  .long 0x7E20C018    @ MMIO for the PWM
+  .long 0x1D4C0       @ Transfer length
+  .long 0             @ 2D mode stride (whatever that means)
+  .long DMA_CTRL_0    @ Next control block address
 
 .align 4
-@ DMA Buffer - 30000h bytes, filled with 0s
-dma_buffer:
+@ DMA Buffers - 1D4C0h bytes, filled with 0s
+dma_buffer_0:
   .space 0x1D4C0, 0
+
+dma_buffer_1:
+  .space 0x1D4C0, 0
+
+.align 2
+buffer_index:
+    .long 0
 
 notes:
   note c3
