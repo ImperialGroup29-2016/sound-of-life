@@ -23,7 +23,17 @@
 
 .section .text
 
-@ Setting up the sound
+@-------------------------------------------------------------------------------
+@ setup_sound*
+@ Effect:
+@   Sets PWM and DMA up to output sound
+@ Arguments:
+@   none
+@ Returns:
+@   none
+@ Clobbers:
+@   r0 - r2
+@-------------------------------------------------------------------------------
 setup_sound:
 
   @ Set the GPIO pins 40 and 45 to PWM
@@ -78,10 +88,20 @@ setup_sound:
   @ Return
   mov pc, lr
 
-
+@-------------------------------------------------------------------------------
+@ setup_sound*
+@ Effect:
+@   Sets PWM and DMA up to output sound
+@ Arguments:
+@   r0 = the sounds to be played. Each 0-15 bit corresponds to a sound.
+@ Returns:
+@   none
+@ Clobbers:
+@   none
+@-------------------------------------------------------------------------------
 @ Gets what sounds to load in r0
 play_sound:
-  stmfd sp!, {r1 - r10, lr}
+  stmfd sp!, {r0 - r9, lr}
 
   ldr   r1, =0x10         @ Number of sounds to load
   ldr   r2, =0x00000001   @ Sets the first bit to check
@@ -142,7 +162,7 @@ play_sound:
     beq   1b
 
   @ Return
-  ldmfd sp!, {r1 - r10, pc}
+  ldmfd sp!, {r0 - r9, pc}
 
 .ltorg
 .section .text
