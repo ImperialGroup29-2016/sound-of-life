@@ -17,15 +17,20 @@ main:
     @bl      test_get_sound
     @bl      sound_test_board
     bl      gol_main
+    mov     r4,#0                  @ signal 22 starts as 0
 
 render:
     bl      play_columns
 
+    stmfd   sp!,{r3}
     bl      read_check
     cmp     r7,#0
     beq     main_skip_interrupt
     bl      read_main
+    mov     r4,#0x00400000         @ signal 22 was up
 main_skip_interrupt:
+    ldmfd   sp!,{r3}
+
     bl      gol_game_tick
 
     b       render
