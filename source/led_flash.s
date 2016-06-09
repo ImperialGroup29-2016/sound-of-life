@@ -2,6 +2,18 @@
 
 .section .text
 
+@------------------------------------------------------------------------------
+@ Flash
+@ Effect:
+@   Makes gpio port 17 (the LED on the pi) flash infinitely
+@ Arguments:
+@   none
+@ Returns:
+@   none
+@ Clobbers:
+@   r0, r1, r2, r3, r6, r7, r10
+@------------------------------------------------------------------------------
+
 flash:
   ldr r0, =0x20200004
   ldr r1, =0x00040000
@@ -18,7 +30,7 @@ mainloop:
   bgt countonloop
 
   andeq r0, r0, r0
-  b _start
+  b flash
 
 countonloop:
   ldr r3, =10000000
