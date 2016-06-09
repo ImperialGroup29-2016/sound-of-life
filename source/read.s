@@ -17,9 +17,9 @@ read_main:
   read_cycle:
     bl read_gpio                   @ read signals
 
-    and r7,r3,#0x00400000          @ interpret signal 23
+    and r7,r3,#0x00400000          @ interpret signal 22
     cmp r7, #0
-    beq read_next_2
+    beq read_next_1
     bl read_restore_tmp            @ restore the current cell
     ldmfd sp!,{r0-r9,pc}           @ return if interrupt signal is broken
     read_next_1:
@@ -131,20 +131,22 @@ read_init:
   ldr r3,=0x00000000
   str r3,[r9]
   ldr r9,=0x20200028
-  ldr r3,=0x03C00000             @ gpio 22-25
+  ldr r3,=0x0FF00000             @ gpio 22-25
   str r3,[r9]
   ldmfd sp!,{r0-r9,pc}
 
 @ read_check*
+@ input:
+@   r4 - the past signals
 @ output:
-@   r7 - the unshifted value of gpio 22 signal.
-@   it does not detect growing edge
+@   r4 - the current signals
+@   r7 - returns the growing edge of signal 22
 
 read_check:
-  stmfd sp!,{r0-r4,lr}
+  stmfd sp!,{r3,lr}
   bl read_gpio
-  and r7,r4,#0x00400000          @ interpret signal 22 directly
-  ldmfd sp!,{r0-r4,pc}
+  and r7,r3,#0x00400000          @ interpret signal 22
+  ldmfd sp!,{r3,pc}
 
 @ read_place_tmp
 @ input:
