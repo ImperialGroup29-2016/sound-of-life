@@ -70,17 +70,21 @@ setup_sound:
   adr   r1, DMA_CTRL
   str   r1, [r0]
 
+  @ Start DMA0
+  ldr   r0, =DMA0_CS
+  ldr   r1, =0x00000001
+  str   r1, [r0]
+
   @ Return
   mov pc, lr
 
 
-
 @ Gets what sounds to load in r0
 play_sound:
-  stmfd sp!, {r1 - r9, lr}
+  stmfd sp!, {r1 - r10, lr}
 
   cmp   r0, #0
-  ldmeqfd sp!, {r1 - r9, pc}
+  ldmeqfd sp!, {r1 - r10, pc}
 
   ldr   r1, =0x10         @ Number of sounds to load
   ldr   r2, =0x00000001   @ Sets the first bit to check
@@ -88,7 +92,7 @@ play_sound:
   ldr   r4, =notes        @ Load notes
 
   mov   r5, r3
-  ldr   r6, =0x1D4C0
+  ldr   r6, =0x1E4C0
   mov   r7, #0
   mov   r8, #0            @ Clears registers
   mov   r9, #0
@@ -128,9 +132,9 @@ play_sound:
     subs  r1, r1, #1
     bne   1b
 
-  @ Start DMA0
+  @ Reset DMA INT 
   ldr   r0, =DMA0_CS
-  ldr   r1, =0x00000001
+  ldr   r1, =0x00000005
   str   r1, [r0]
 
   @ Wait until DMA INT is set
@@ -140,13 +144,8 @@ play_sound:
     tst   r1, r1
     beq   1b
 
-  @ Stop DMA0 and reset DMA INT 
-  ldr   r0, =DMA0_CS
-  ldr   r1, =0x00000004
-  str   r1, [r0]
-
   @ Return
-  ldmfd sp!, {r1 - r9, pc}
+  ldmfd sp!, {r1 - r10, pc}
 
 .ltorg
 .section .text
@@ -158,14 +157,14 @@ DMA_CTRL:
   .long 0x00050141    @ Attributes
   .long dma_buffer    @ Source address
   .long 0x7E20C018    @ MMIO for the PWM
-  .long 0x1D4C0       @ Transfer length
+  .long 0x1E4C0       @ Transfer length
   .long 0             @ 2D mode stride (whatever that means)
   .long DMA_CTRL      @ Next control block address
 
 .align 4
-@ DMA Buffer - 30000h bytes, filled with 0s
+@ DMA Buffer - 1E4C0h bytes, filled with 0s
 dma_buffer:
-  .space 0x1D4C0, 0
+  .space 0x1E4C0, 0
 
 notes:
   note c3
