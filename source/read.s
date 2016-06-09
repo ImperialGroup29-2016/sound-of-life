@@ -17,9 +17,9 @@ read_main:
   read_cycle:
     bl read_gpio                   @ read signals
 
-    and r7,r3,#0x00400000          @ interpret signal 23
+    and r7,r3,#0x00400000          @ interpret signal 22
     cmp r7, #0
-    beq read_next_2
+    beq read_next_1
     bl read_restore_tmp            @ restore the current cell
     ldmfd sp!,{r0-r9,pc}           @ return if interrupt signal is broken
     read_next_1:
@@ -27,7 +27,6 @@ read_main:
     and r7,r3,#0x00800000          @ interpret signal 23
     cmp r7, #0
     beq read_next_2
-    bl flash
     bl read_restore_tmp            @ restore the current cell
     add r1,r1,#1                   @ increase i
     bl gol_cycle
