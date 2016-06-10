@@ -31,7 +31,7 @@ render:
 main_skip_interrupt:
     ldmfd   sp!,{r3}
 
-    @bl      gol_game_tick
+    bl      gol_game_tick
 
     b       render
 
