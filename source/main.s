@@ -15,12 +15,12 @@ main:
 	ldr color, =0xffff    
 
     @bl      test_get_sound
-    @bl      sound_test_board
-    bl      gol_main
+    bl      sound_test_board
+    @bl      gol_main
     mov     r4,#0                  @ signal 22 starts as 0
 
 render:
-    @bl      play_columns
+    bl      play_diagonal
 
     stmfd   sp!,{r3}
     bl      read_check
@@ -31,7 +31,7 @@ render:
 main_skip_interrupt:
     ldmfd   sp!,{r3}
 
-    bl      gol_game_tick
+    @bl      gol_game_tick
 
     b       render
 
