@@ -56,7 +56,7 @@ sound_columns:
 
 .section .text
 
-@-----------------------------------------------------------------------------
+@------------------------------------------------------------------------------
 @ sound_of_life*
 @
 @ Effect:
@@ -67,8 +67,7 @@ sound_columns:
 @   None
 @ Clobbers:
 @   None
-@
-@-----------------------------------------------------------------------------
+@------------------------------------------------------------------------------
 sound_of_life:
   stmfd   sp!, {r0, lr}
   
@@ -83,30 +82,34 @@ sound_of_life:
 
   ldmfd   sp!, {r0, pc}
 
-@--------------------------------------------------------
-@ Arguments supplied:
-@ r7 = start of sound matrix
-@ r1 = y value
-@ r2 = x value
-@ 
-@ Returns:
-@ r7 = sound no to play
+@------------------------------------------------------------------------------
+@ get_sound
 @
-@--------------------------------------------------------
+@ Effect:
+@  Returns the sound number at the given coordinates in a sound matrix
+@ Arguments supplied:
+@  r7 = start of sound matrix
+@  r1 = y value
+@  r2 = x value
+@ Returns:
+@  r7 = sound no to play
+@ Clobbers:
+@  r7
+@------------------------------------------------------------------------------
 get_sound:
-    stmfd sp!, {r0-r6, lr}
+  stmfd sp!, {r0-r6, lr}
 
-    mov r6, #16       @ r6 = no of cols 
-    mul r4, r1, r6
-    add r4, r4, r2
-    mov r3, #4
-    mul r5, r4, r3
-    add r5, r5, r7
-    ldr r7, [r5]
+  mov r6, #16       @ r6 = no of cols 
+  mul r4, r1, r6
+  add r4, r4, r2
+  mov r3, #4
+  mul r5, r4, r3
+  add r5, r5, r7
+  ldr r7, [r5]
 
-    ldmfd sp!, {r0-r6, pc}
+  ldmfd sp!, {r0-r6, pc}
 
-@--------------------------------------------------------
+@------------------------------------------------------------------------------
 @ play_columns
 @ Effect:
 @   Plays the matrix column by column
@@ -114,210 +117,230 @@ get_sound:
 @ none
 @ Returns:
 @ none
-@--------------------------------------------------------
+@------------------------------------------------------------------------------
 play_columns:
-    stmfd sp!, {r0 - r7, lr}
+  stmfd sp!, {r0 - r7, lr}
 
-    row     .req  r1
-    col     .req  r2
-    status  .req  r3
-    rows    .req  r5
-    columns .req  r6
-    smatrix .req  r7
-    notes   .req  r0
-    
-    mov     notes, #0
-    mov     rows, #16
-    mov     columns, #16
+  row     .req  r1
+  col     .req  r2
+  status  .req  r3
+  rows    .req  r5
+  columns .req  r6
+  smatrix .req  r7
+  notes   .req  r0
+  
+  mov     notes, #0
+  mov     rows, #16
+  mov     columns, #16
 
-    mov     col, #0
-    1:
-      mov   row, #0
+  mov     col, #0
+  1:
+    mov   row, #0
 
-      2:
-        ldr smatrix, =sound_rows
-        bl  get_sound      
-        bl  gol_get_alive  
-
-        
-        stmfd sp!, {r0-r2}
-        
-        mov r0, r2
-        ldr r2, =0xD8D8D8
-
-        cmp status, #1
-        bleq graphics_draw_square
-        
-        ldmfd sp!, {r0-r2}
-
-        lsl status, smatrix
-        orr notes, status 
-        add row, #1
-        cmp row, rows
-        bne 2b
-
-      bl  play_sound
-      mov notes, #0
-
-      mov row, #0
-      2:
-        bl gol_get_alive
-
-        @ Cheers, Paul
-        stmfd sp!, {r0-r2}
-        
-        mov   r0, r2
-        ldr   r2, =0xFFFF
-
-        cmp   status, #1
-        bleq  graphics_draw_square
-
-        ldmfd sp!, {r0-r2}
-
-        add   row, #1
-        cmp   row, rows
-        bne   2b
-        
-
-      add col, #1
-      cmp col, columns
-      bne 1b
-
-    ldmfd sp!, {r0 - r7, pc}
-
-
-play_rows:
-    stmfd sp!, {r0 - r7, lr}
-
-    row     .req  r1
-    col     .req  r2
-    status  .req  r3
-    rows    .req  r5
-    columns .req  r6
-    smatrix .req  r7
-    notes   .req  r0
-    
-    mov     notes, #0
-    mov     rows, #16
-    mov     columns, #16
-
-    mov     row, #0
-    1:
-      mov   col, #0
-
-      2:
-        ldr smatrix, =sound_columns
-        bl  get_sound      
-        bl  gol_get_alive
-
-        
-        @Cheers, Paul
-        stmfd sp!, {r0-r2}
-        
-        mov r0, r2
-        ldr r2, =0xB02335
-
-        cmp status, #1
-        bleq graphics_draw_square
-        
-        ldmfd sp!, {r0-r2}
-
-        lsl status, smatrix
-        orr notes, status 
-        add col, #1
-        cmp col, columns
-        bne 2b
-
-      bl  play_sound
-      mov notes, #0
-
-      mov col, #0
-      2:
-        bl gol_get_alive
-
-        @ Cheers, Paul
-        stmfd sp!, {r0-r2}
-        
-        mov   r0, r2
-        ldr   r2, =0xFFFF
-
-        cmp   status, #1
-        bleq  graphics_draw_square
-
-        ldmfd sp!, {r0-r2}
-
-        add   col, #1
-        cmp   col, columns
-        bne   2b
-        
-
-      add row, #1
-      cmp row, rows
-      bne 1b
-
-    ldmfd sp!, {r0 - r7, pc}
-
-
-
-play_diagonal:
-    stmfd sp!, {r0 - r7, lr}
-
-    row     .req  r1
-    col     .req  r2
-    status  .req  r3
-    rowtmp  .req  r4
-    rows    .req  r5
-    columns .req  r6
-    smatrix .req  r7
-    notes   .req  r0
-    
-    mov     notes, #0
-    mov     rows, #16
-    mov     columns, #16
-
-    mov     row, #0
-    1:
-      mov     rowtmp, #0
-      mov     col, #0
     2:
-      @ Check that the coordinate is within the bounds of the square
-      cmp   rowtmp, #0
-      blt   3f
-      cmp   rowtmp, #15
-      bgt   3f
-      cmp   col, #0
-      blt   3f
-      cmp   col, #15
-      bgt   3f
-
-      ldr   smatrix, =sound_columns
-      bl    get_sound
-      bl    gol_get_alive
+      ldr smatrix, =sound_rows
+      bl  get_sound      
+      bl  gol_get_alive  
 
       
-
-
+      @ Need to move the coordinates around to draw the square
       stmfd sp!, {r0-r2}
-        
-      mov   r0, r2
-      ldr   r2, =0x2200
+      
+      mov r0, r2
+      ldr r2, =0xD8D8D8
 
-      cmp   status, #1
-      bleq  graphics_draw_square
+      cmp status, #1
+      @ Draw the square a different colour to see it playing
+      bleq graphics_draw_square     
       
       ldmfd sp!, {r0-r2}
 
-      lsl   status, smatrix
-      orr   notes, status 
+      @ Set the status bit of the note returned from get_sound
+      lsl status, smatrix
+      orr notes, status 
+      add row, #1
+      cmp row, rows
+      bne 2b
+
+    bl  play_sound
+    mov notes, #0
+
+    mov row, #0
+    2:
+      bl gol_get_alive
+
+      @ Cheers, Paul
+      stmfd sp!, {r0-r2}
       
-      add   rowtmp, #1
-      sub   col, #1
-      bl    2b
-    3:
-      bl  play_sound
-      mov notes, #0
+      mov   r0, r2
+      ldr   r2, =0xFFFF
+
+      cmp   status, #1
+      @ Redraw the square so it's white again.
+      bleq  graphics_draw_square
+
+      ldmfd sp!, {r0-r2}
+
       add   row, #1
       cmp   row, rows
-      bne   1b
+      bne   2b
+      
 
-    ldmfd sp!, {r0 - r7, pc}
+    add col, #1
+    cmp col, columns
+    bne 1b
+
+  ldmfd sp!, {r0 - r7, pc}
+
+
+@------------------------------------------------------------------------------
+@ play_rows
+@
+@ Effect:
+@   Plays the matrix row by row
+@ Arguments:
+@ none
+@ Returns:
+@ none
+@------------------------------------------------------------------------------
+play_rows:
+  stmfd sp!, {r0 - r7, lr}
+
+  row     .req  r1
+  col     .req  r2
+  status  .req  r3
+  rows    .req  r5
+  columns .req  r6
+  smatrix .req  r7
+  notes   .req  r0
+  
+  mov     notes, #0
+  mov     rows, #16
+  mov     columns, #16
+
+  mov     row, #0
+  1:
+    mov   col, #0
+
+    2:
+      ldr smatrix, =sound_columns
+      bl  get_sound      
+      bl  gol_get_alive
+
+      
+      @Cheers, Paul
+      stmfd sp!, {r0-r2}
+      
+      mov r0, r2
+      ldr r2, =0xB02335
+
+      cmp status, #1
+      bleq graphics_draw_square
+      
+      ldmfd sp!, {r0-r2}
+
+      lsl status, smatrix
+      orr notes, status 
+      add col, #1
+      cmp col, columns
+      bne 2b
+
+    bl  play_sound
+    mov notes, #0
+
+    mov col, #0
+    2:
+      bl gol_get_alive
+
+      stmfd sp!, {r0-r2}
+      
+      mov   r0, r2
+      ldr   r2, =0xFFFF
+
+      cmp   status, #1
+      bleq  graphics_draw_square
+
+      ldmfd sp!, {r0-r2}
+
+      add   col, #1
+      cmp   col, columns
+      bne   2b
+      
+
+    add row, #1
+    cmp row, rows
+    bne 1b
+
+  ldmfd sp!, {r0 - r7, pc}
+
+
+
+@------------------------------------------------------------------------------
+@ play_diagonal
+@
+@ Effect:
+@   Plays the cells of the matrix in a diagonal fashion.
+@ Arguments:
+@ none
+@ Returns:
+@ none
+@------------------------------------------------------------------------------
+play_diagonal:
+  stmfd sp!, {r0 - r7, lr}
+
+  rowtmp  .req  r1
+  col     .req  r2
+  status  .req  r3
+  row     .req  r4
+  rows    .req  r5
+  columns .req  r6
+  smatrix .req  r7
+  notes   .req  r0
+  
+  mov     notes, #0
+  mov     rows, #16
+  mov     columns, #16
+
+  mov     row, #0
+  1:
+    mov     rowtmp, #0
+    mov     col, #0
+  2:
+    @ Check that the coordinate is within the bounds of the square
+    cmp   rowtmp, #0
+    blt   3f
+    cmp   rowtmp, #15
+    bgt   3f
+    cmp   col, #0
+    blt   3f
+    cmp   col, #15
+    bgt   3f
+
+    ldr   smatrix, =sound_columns
+    bl    get_sound
+    bl    gol_get_alive
+
+    stmfd sp!, {r0-r2}
+      
+    mov   r0, r2
+    ldr   r2, =0x2200
+
+    cmp   status, #1
+    bleq  graphics_draw_square
+    
+    ldmfd sp!, {r0-r2}
+
+    lsl   status, smatrix
+    orr   notes, status 
+    
+    add   rowtmp, #1
+    sub   col, #1
+    bl    2b
+  3:
+    bl  play_sound
+    mov notes, #0
+    add   row, #1
+    cmp   row, rows
+    bne   1b
+
+  ldmfd sp!, {r0 - r7, pc}
