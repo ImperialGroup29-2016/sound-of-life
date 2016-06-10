@@ -47,34 +47,35 @@ read_main:
     sub   r2, r2, #1               @ decrease j
     bl    gol_cycle
     bl    read_place_tmp           @ draw the new temp cell
+    read_next_2:
 
     and   r7, r3, #0x00800000      @ interpret signal 23
     cmp   r7, #0
-    beq   read_next_2
+    beq   read_next_3
     bl    read_restore_tmp         @ restore the current cell
     add   r1, r1, #1               @ increase i
     bl    gol_cycle
     bl    read_place_tmp           @ draw the new temp cell
-    read_next_2:
+    read_next_3:
 
     and   r7, r3, #0x01000000      @ interpret signal 24
     cmp   r7, #0
-    beq   read_next_3
+    beq   read_next_4
     bl    read_restore_tmp         @ restore the current cell
     add   r2, r2, #1               @ increase j
     bl    gol_cycle
     bl    read_place_tmp           @ draw the new temp cell
-    read_next_3:
+    read_next_4:
 
     and   r7, r3, #0x02000000      @ interpret signal 25
     cmp   r7, #0
-    beq   read_next_4
+    beq   read_next_5
     bl    read_toggle_square       @ toggle the cell
-    read_next_4:
+    read_next_5:
 
     and   r7, r3, #0x08000000      @ interpret signal 27
     cmp   r7, #0
-    beq   read_next_5
+    beq   read_next_6
     cmp   r8, #0
     bne   read_main_sig27_shift
     mov   r8, #1                   @ switch the play mode
@@ -84,7 +85,7 @@ read_main:
     lsl   r8, #1
     and   r8, r8, #0x0000000f      @ switch the play mode
     bl    read_place_tmp           @ draw the new temp cell
-    read_next_5:
+    read_next_6:
 
     bl    read_wait
     b     read_cycle
