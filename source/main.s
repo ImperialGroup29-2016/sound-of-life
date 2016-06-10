@@ -17,7 +17,7 @@ main:
     @bl      test_get_sound
     bl      sound_test_fill
     @bl      gol_main
-    mov     r4,#0                  @ signal 22 starts as 0
+    mov     r4,#0                  @ signal 04 starts as 0
 
 render:
     bl      play_diagonal
@@ -27,7 +27,7 @@ render:
     cmp     r7,#0
     beq     main_skip_interrupt
     bl      read_main
-    mov     r4,#0x00400000         @ signal 22 was up
+    mov     r4,#0x00000010         @ signal 04 was up
 main_skip_interrupt:
     ldmfd   sp!,{r3}
 
