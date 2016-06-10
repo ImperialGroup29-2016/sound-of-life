@@ -1,4 +1,5 @@
 .global sound_test_board
+.global sound_test_fill
 .global test_get_sound
 
 .section .text
@@ -32,6 +33,37 @@ sound_test_board:
 
   ldmfd sp!,{r1-r3, pc}                        @ return
 
+@------------------------------------------------------------------------------
+@ Completely fills the board for testing purposes
+@
+@------------------------------------------------------------------------------
+sound_test_fill:
+  stmfd sp!, {r1-r6, lr}
+  
+  mov   r5, #16                   @ Matrix dimensions
+  mov   r6, #16
+  ldr   r7, =gol_matrix_address   @ GOL Matrix address
+
+  row   .req r1
+  col   .req r2
+  mov   row, #0
+
+1:
+  mov   col, #0
+  2:
+    mov   r3, #0
+    bl    gol_set_alive
+    
+    add   col, #1
+    cmp   col, r5
+    beq   3f
+    b     2b
+  3:
+    add   row, #1
+    cmp   row, r5
+    blt   1b
+
+  ldmfd sp!, {r1-r6, pc} 
 
 @------------------------------------------------------------------------------
 @ Tests the get_sound function to make sure that the right values are

@@ -286,61 +286,103 @@ play_rows:
 @ none
 @------------------------------------------------------------------------------
 play_diagonal:
-  stmfd sp!, {r0 - r7, lr}
+  stmfd sp!, {r0 - r9, lr}
 
-  rowtmp  .req  r1
-  col     .req  r2
-  status  .req  r3
-  row     .req  r4
-  rows    .req  r5
-  columns .req  r6
-  smatrix .req  r7
-  notes   .req  r0
+  ytmp      .req  r1
+  xtmp      .req  r2
+  status    .req  r3
+  y         .req  r4
+  ys        .req  r5
+  xs        .req  r6
+  smatrix   .req  r7
+  x         .req  r8
+  notes     .req  r0
+  drawwhite .req  r9
   
   mov     notes, #0
-  mov     rows, #16
-  mov     columns, #16
+  mov     xs, #16
+  mov     ys, #16
 
-  mov     row, #0
+  mov     x, #0
+  mov     y, #0
   1:
-    mov     rowtmp, #0
-    mov     col, #0
-  2:
-    @ Check that the coordinate is within the bounds of the square
-    cmp   rowtmp, #0
-    blt   3f
-    cmp   rowtmp, #15
-    bgt   3f
-    cmp   col, #0
-    blt   3f
-    cmp   col, #15
-    bgt   3f
+    mov     xtmp, x
+    mov     ytmp, y
 
-    ldr   smatrix, =sound_columns
-    bl    get_sound
-    bl    gol_get_alive
+    cmp   drawwhite, #1
+    beq   3f
+    2:
+      mov   drawwhite, #1
+      @ Check that the coordinate is within the bounds of the square
+      cmp   ytmp, #0
+      blt   4f
+      cmp   ytmp, #15
+      bgt   4f
+      cmp   xtmp, #0
+      blt   4f
+      cmp   xtmp, #15
+      bgt   4f
 
-    stmfd sp!, {r0-r2}
+      ldr   smatrix, =sound_columns
+      bl    get_sound
+      bl    gol_get_alive
+
+      stmfd sp!, {r0-r2}
+        
+      mov   r0, r2
+      ldr   r2, =0x2200
+
+      cmp   status, #1
+      bleq  graphics_draw_square
       
-    mov   r0, r2
-    ldr   r2, =0x2200
+      ldmfd sp!, {r0-r2}
 
-    cmp   status, #1
-    bleq  graphics_draw_square
-    
-    ldmfd sp!, {r0-r2}
-
-    lsl   status, smatrix
-    orr   notes, status 
-    
-    add   rowtmp, #1
-    sub   col, #1
-    bl    2b
+      lsl   status, smatrix
+      orr   notes, status 
+      
+      sub   ytmp, #1
+      add   xtmp, #1
+      bl    2b
   3:
+      @ Used for drawing the squares white again after sound is played
+      mov   drawwhite, #0
+      @ Check that the coordinate is within the bounds of the square
+      cmp   ytmp, #0
+      blt   4f
+      cmp   ytmp, #15
+      bgt   4f
+      cmp   xtmp, #0
+      blt   4f
+      cmp   xtmp, #15
+      bgt   4f
+
+      bl    gol_get_alive
+
+      stmfd sp!, {r0-r2}
+        
+      mov   r0, r2
+      ldr   r2, =0xffff
+      cmp   status, #1
+      bleq  graphics_draw_square
+      
+      ldmfd sp!, {r0-r2}
+      
+      sub   ytmp, #1
+      add   xtmp, #1
+      bl    3b
+  4:
+    @ Switch draw white
+    cmp   drawwhite, #1
+    beq   1b
+
     bl  play_sound
     mov notes, #0
-    add   row, #1
-    cmp   row, rows
+    add   y, #1
+    cmp   y, ys
+    bne   1b
+    sub   y, #1
+    add   x, #1
+    cmp   x, xs
     bne   1b
 
-  ldmfd sp!, {r0 - r7, pc}
+  ldmfd sp!, {r0 - r9, pc}
