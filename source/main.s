@@ -27,7 +27,7 @@ render:
     cmp     r7,#0
     beq     main_skip_interrupt
     bl      read_main
-    mov     r4,#0x00000010         @ signal 04 was up
+    mov     r4,#0x00020000         @ signal 04 was up
 main_skip_interrupt:
     ldmfd   sp!,{r3}
 

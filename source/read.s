@@ -23,14 +23,14 @@ read_main:
   ldr   r8, [r0]
   mov   r0, #0
   bl    play_sound
-  mov   r4, #0x00000010          @ initialise the growing edge register
+  mov   r4, #0x00020000          @ initialise the growing edge register
   mov   r1, #0                   @ clears the sound buffer
   mov   r2, #0
   bl    read_place_tmp           @ draw the new temp cell
   read_cycle:
     bl    read_gpio                @ read signals
 
-    and   r7, r3, #0x00000010      @ interpret signal 4
+    and   r7, r3, #0x00020000      @ interpret signal 17
     cmp   r7, #0
     beq   read_next_1
     bl    read_restore_tmp         @ restore the current cell
@@ -225,11 +225,14 @@ read_init:
   ldr   r9, =0x20200008
   ldr   r3, =0x00000000
   str   r3, [r9]
+  ldr   r9, =0x20200028
+  ldr   r3, =0x2FF00000          @ gpio 22-25, and 27
+  str   r3, [r9]
   ldr   r9, =0x20200004
   ldr   r3, =0x00000000
   str   r3, [r9]
   ldr   r9, =0x20200028
-  ldr   r3, =0x2FF00010          @ gpio 04, 22-25, and 27
+  ldr   r3, =0x00020000          @ gpio 17
   str   r3, [r9]
   ldmfd sp!, {r0-r9, pc}
 
@@ -249,7 +252,7 @@ read_init:
 read_check:
   stmfd sp!, {r3, lr}
   bl    read_gpio
-  and   r7, r3, #0x00000010      @ interpret signal 4
+  and   r7, r3, #0x00020000      @ interpret signal 17
   ldmfd sp!, {r3, pc}
 
 @-------------------------------------------------------------------------------
