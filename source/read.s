@@ -23,14 +23,14 @@ read_main:
   ldr   r8, [r0]
   mov   r0, #0
   bl    play_sound
-  mov   r4, #0x00400000          @ clears the sound buffer
-  mov   r1, #0
+  mov   r4, #0x00000010          @ initialise the growing edge register
+  mov   r1, #0                   @ clears the sound buffer
   mov   r2, #0
   bl    read_place_tmp           @ draw the new temp cell
   read_cycle:
     bl    read_gpio                @ read signals
 
-    and   r7, r3, #0x00400000      @ interpret signal 22
+    and   r7, r3, #0x00000010      @ interpret signal 4
     cmp   r7, #0
     beq   read_next_1
     bl    read_restore_tmp         @ restore the current cell
@@ -38,6 +38,15 @@ read_main:
     str   r8, [r0]
     ldmfd sp!, {r0-r9, pc}         @ return if interrupt signal is broken
     read_next_1:
+
+    and   r7, r3, #0x00400000      @ interpret signal 22
+    cmp   r7, #0
+    beq   read_next_2
+    bl    read_restore_tmp         @ restore the current cell
+    sub   r1, r1, #1               @ decrease i
+    sub   r2, r2, #1               @ decrease j
+    bl    gol_cycle
+    bl    read_place_tmp           @ draw the new temp cell
 
     and   r7, r3, #0x00800000      @ interpret signal 23
     cmp   r7, #0
@@ -215,8 +224,11 @@ read_init:
   ldr   r9, =0x20200008
   ldr   r3, =0x00000000
   str   r3, [r9]
+  ldr   r9, =0x20200004
+  ldr   r3, =0x00000000
+  str   r3, [r9]
   ldr   r9, =0x20200028
-  ldr   r3, =0x2FF00000          @ gpio 22-25 and 27
+  ldr   r3, =0x2FF00010          @ gpio 04, 22-25, and 27
   str   r3, [r9]
   ldmfd sp!, {r0-r9, pc}
 
@@ -229,14 +241,14 @@ read_init:
 @   r4 - the past signals
 @ Returns:
 @   r4 - the current signals
-@   r7 - returns the growing edge of signal 22
+@   r7 - returns the growing edge of signal 4
 @ Clobbers:
 @   r4, r7
 @-------------------------------------------------------------------------------
 read_check:
   stmfd sp!, {r3, lr}
   bl    read_gpio
-  and   r7, r3, #0x00400000      @ interpret signal 22
+  and   r7, r3, #0x00000010      @ interpret signal 4
   ldmfd sp!, {r3, pc}
 
 @-------------------------------------------------------------------------------
