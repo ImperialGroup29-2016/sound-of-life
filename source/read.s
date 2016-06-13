@@ -162,15 +162,16 @@ read_restore_tmp:
 read_place_tmp:
   stmfd sp!, {r0-r2, lr}
   mov   r0, r2
-  ldr   r2, =0x2200
   cmp   r8, #0
-  addgt r2, r2, #0x2200
+  ldreq r2, =0x15F9
   cmp   r8, #1
-  addgt r2, r2, #0x2200
+  ldreq r2, =0xE0C3
   cmp   r8, #2
-  addgt r2, r2, #0x2200
+  ldreq r2, =0x293F
+  cmp   r8, #3
+  ldreq r2, =0xA017
   cmp   r8, #4
-  addgt r2, r2, #0x2200
+  ldreq r2, =0x25A0
   bl    graphics_draw_square
   ldmfd sp!, {r0-r2, pc}
 
