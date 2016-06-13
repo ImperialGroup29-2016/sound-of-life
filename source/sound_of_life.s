@@ -98,8 +98,11 @@ sound_of_life:
   cmp     r0, #2
   bleq    play_rows
 
-  cmp     r0, #4
+  cmp     r0, #3
   bleq    play_diagonal
+
+  cmp     r0, #4
+  bleq    play_spiral
 
   ldmfd   sp!, {r0, pc}
 
@@ -168,7 +171,8 @@ play_columns:
       stmfd sp!, {r0-r2}
       
       mov r0, r2
-      ldr r2, =0xD8D8D8
+      ldr r2, =0xE0C3
+
 
       cmp status, #1
       @ Draw the square a different colour to see it playing
@@ -190,7 +194,6 @@ play_columns:
     2:
       bl gol_get_alive
 
-      @ Cheers, Paul
       stmfd sp!, {r0-r2}
       
       mov   r0, r2
@@ -210,6 +213,14 @@ play_columns:
     add col, #1
     cmp col, columns
     bne 1b
+
+  .unreq    row     
+  .unreq    col     
+  .unreq    status  
+  .unreq    rows    
+  .unreq    columns 
+  .unreq    smatrix 
+  .unreq    notes   
 
   ldmfd sp!, {r0 - r7, pc}
 
@@ -249,11 +260,10 @@ play_rows:
       bl  gol_get_alive
 
       
-      @Cheers, Paul
       stmfd sp!, {r0-r2}
       
       mov r0, r2
-      ldr r2, =0xB02335
+      ldr r2, =0x293F
 
       cmp status, #1
       bleq graphics_draw_square
@@ -291,6 +301,14 @@ play_rows:
     add row, #1
     cmp row, rows
     bne 1b
+
+  .unreq    row     
+  .unreq    col     
+  .unreq    status  
+  .unreq    rows    
+  .unreq    columns 
+  .unreq    smatrix 
+  .unreq    notes   
 
   ldmfd sp!, {r0 - r7, pc}
 
@@ -351,7 +369,7 @@ play_diagonal:
       stmfd sp!, {r0-r2}
         
       mov   r0, r2
-      ldr   r2, =0x2200
+      ldr   r2, =0xA017
 
       cmp   status, #1
       bleq  graphics_draw_square
@@ -364,7 +382,7 @@ play_diagonal:
       sub   ytmp, #1
       add   xtmp, #1
       bl    2b
-  3:
+    3:
       @ Used for drawing the squares white again after sound is played
       mov   drawwhite, #0
       @ Check that the coordinate is within the bounds of the square
@@ -392,12 +410,14 @@ play_diagonal:
       add   xtmp, #1
       bl    3b
   4:
+    cmp   drawwhite, #1
+    bleq  play_sound
+
     @ Switch draw white
     cmp   drawwhite, #1
     beq   1b
 
-    bl  play_sound
-    mov notes, #0
+    mov   notes, #0
     add   y, #1
     cmp   y, ys
     bne   1b
@@ -406,4 +426,145 @@ play_diagonal:
     cmp   x, xs
     bne   1b
 
+  .unreq     ytmp      
+  .unreq     xtmp      
+  .unreq     status    
+  .unreq     y         
+  .unreq     ys        
+  .unreq     xs        
+  .unreq     smatrix   
+  .unreq     x         
+  .unreq     notes     
+  .unreq     drawwhite 
+
   ldmfd sp!, {r0 - r9, pc}
+
+@------------------------------------------------------------------------------
+@ play_spiral
+@
+@ Effect:
+@   Plays the cells of the matrix in a "Spiral" fashion, which is essentially
+@   playing square outlines of an increasing size from the middle outwards.
+@ Arguments:
+@ none
+@ Returns:
+@ none
+@------------------------------------------------------------------------------
+play_spiral:
+  stmfd sp!, {r0 - r13, lr}
+
+  ytmp      .req  r1
+  xtmp      .req  r2
+  status    .req  r3
+  y         .req  r4
+  ys        .req  r5
+  xs        .req  r6
+  smatrix   .req  r7
+  x         .req  r8
+  notes     .req  r0
+  drawwhite .req  r9
+  sqsize    .req  r10
+  i         .req  r11
+  direction .req  r12
+  
+  mov     notes, #0
+  mov     xs, #16
+  mov     ys, #16
+  mov     sqsize, #4
+
+  mov     x, #7
+  mov     y, #7
+
+  1:
+    mov     xtmp, x
+    mov     ytmp, y
+    mov     direction, #0
+    
+    cmp   ytmp, #0
+    blt   4f
+    cmp   xtmp, #0
+    blt   4f
+    
+    2:
+      mov   i, sqsize
+
+    3:
+      ldr   smatrix, =sound_diagonal
+      bl    get_sound
+      bl    gol_get_alive
+
+      stmfd sp!, {r0-r2}
+        
+      mov   r0, r2
+      ldr   r2, =0x25A0
+
+      cmp   status, #1
+      bleq  graphics_draw_square
+      
+      ldmfd sp!, {r0-r2}
+
+      lsl   status, smatrix
+      orr   notes, status 
+
+      sub   i, #1
+      cmp   i, #0
+      blgt  move_dir
+      bgt   3b
+
+      add   direction, #1
+      cmp   direction, #4
+      bllt  2b
+      
+      bl    play_sound
+      mov   notes, #0
+
+      sub   x, #1
+      sub   y, #1
+      add   sqsize, #2
+      b     1b
+  4: 
+
+  .unreq     ytmp     
+  .unreq     xtmp     
+  .unreq     status   
+  .unreq     y        
+  .unreq     ys       
+  .unreq     xs       
+  .unreq     smatrix  
+  .unreq     x        
+  .unreq     notes    
+  .unreq     drawwhite
+  .unreq     sqsize   
+  .unreq     i        
+  .unreq     direction
+
+  ldmfd sp!, {r0 - r13, pc}
+
+
+@-----------------------------------------------------------------------------
+@ move_dir
+@ 
+@ Effect:
+@   Helper function for play_spiral to move in the direction of travel
+@ Arguments:
+@   ytmp = r1
+@   xtmp = r2
+@   direction = r12
+@-----------------------------------------------------------------------------
+move_dir:
+  cmp     r12, #0
+  addeq   r1, #1
+  moveq   pc, lr
+  
+  cmp     r12, #1
+  addeq   r2, #1
+  moveq   pc, lr
+
+  cmp     r12, #2
+  subeq   r1, #1
+  moveq   pc, lr
+
+  cmp     r12, #3
+  subeq   r2, #1
+  moveq   pc, lr
+
