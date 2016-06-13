@@ -76,14 +76,9 @@ read_main:
     and   r7, r3, #0x08000000      @ interpret signal 27
     cmp   r7, #0
     beq   read_next_6
-    cmp   r8, #0
-    bne   read_main_sig27_shift
-    mov   r8, #1                   @ switch the play mode
-    bl    read_place_tmp           @ draw the new temp cell
-    b     read_next_5
-    read_main_sig27_shift:
-    lsl   r8, #1
-    and   r8, r8, #0x0000000f      @ switch the play mode
+    add   r8, r8, #1
+    cmp   r8, #5
+    subeq r8, r8, #5               @ switch the play mode
     bl    read_place_tmp           @ draw the new temp cell
     read_next_6:
 
