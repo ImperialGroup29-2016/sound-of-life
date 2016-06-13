@@ -72,6 +72,25 @@ sound_diagonal:
     .int  0,14,14,14,14,14,14,14,14,14,14,14,14,14,14,15
     .int 15,15,15,15,15,15,15,15,15,15,15,15,15,15,15,15
 
+.align 4
+sound_pulse:
+    .int  0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12,13,14, 0
+    .int 14, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10,11,12, 0, 1
+    .int 13,12, 0, 1, 2, 3, 4, 5, 6, 7, 8, 9,10, 0, 1, 2
+    .int 12,11,10, 0, 1, 2, 3, 4, 5, 6, 7, 8, 0, 1, 2, 3
+    .int 11,10, 9, 8, 0, 1, 2, 3, 4, 5, 6, 7, 1, 2, 3, 4
+    .int 10, 9, 8, 7,13, 0, 1, 2, 3, 4, 5, 8, 2, 3, 4, 5
+    .int  9, 8, 7, 6,12, 9, 0, 1, 2, 3, 6, 9, 3, 4, 5, 6
+    .int  8, 7, 6, 5,11, 8,11, 0, 1, 4, 7,10, 4, 5, 6, 7
+    .int  7, 6, 5, 4,10, 7,10, 3, 2, 5, 8,11, 5, 6, 7, 8
+    .int  6, 5, 4, 3, 9, 6, 9, 8, 7, 6, 9,12, 6, 7, 8, 9
+    .int  5, 4, 3, 2, 8, 5, 4, 3, 2, 1, 0,13, 7, 8, 9,10
+    .int  4, 3, 2, 1, 7, 6, 5, 4, 3, 2, 1, 0, 8, 9,10,11
+    .int  3, 2, 1, 0, 8, 7, 6, 5, 4, 3, 2, 1, 0,10,11,12
+    .int  2, 1, 0,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,12,13
+    .int  1, 0,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0,14
+    .int  0,14,13,12,11,10, 9, 8, 7, 6, 5, 4, 3, 2, 1, 0
+
 .section .text
 
 @------------------------------------------------------------------------------
@@ -102,7 +121,7 @@ sound_of_life:
   bleq    play_diagonal
 
   cmp     r0, #4
-  bleq    play_spiral
+  bleq    play_pulse
 
   ldmfd   sp!, {r0, pc}
 
@@ -440,7 +459,7 @@ play_diagonal:
   ldmfd sp!, {r0 - r9, pc}
 
 @------------------------------------------------------------------------------
-@ play_spiral
+@ play_pulse
 @
 @ Effect:
 @   Plays the cells of the matrix in a "Spiral" fashion, which is essentially
@@ -450,8 +469,8 @@ play_diagonal:
 @ Returns:
 @ none
 @------------------------------------------------------------------------------
-play_spiral:
-  stmfd sp!, {r0 - r13, lr}
+play_pulse:
+  stmfd sp!, {r0 - r12, lr}
 
   ytmp      .req  r1
   xtmp      .req  r2
@@ -470,7 +489,8 @@ play_spiral:
   mov     notes, #0
   mov     xs, #16
   mov     ys, #16
-  mov     sqsize, #4
+  mov     sqsize, #2
+  mov     drawwhite, #0
 
   mov     x, #7
   mov     y, #7
@@ -489,7 +509,7 @@ play_spiral:
       mov   i, sqsize
 
     3:
-      ldr   smatrix, =sound_diagonal
+      ldr   smatrix, =sound_pulse
       bl    get_sound
       bl    gol_get_alive
 
@@ -497,6 +517,9 @@ play_spiral:
         
       mov   r0, r2
       ldr   r2, =0x25A0
+
+      cmp   drawwhite, #1
+      ldreq r2, =0xFFFF
 
       cmp   status, #1
       bleq  graphics_draw_square
@@ -509,13 +532,24 @@ play_spiral:
       sub   i, #1
       cmp   i, #0
       blgt  move_dir
+
+      cmp   i, #0
       bgt   3b
 
       add   direction, #1
       cmp   direction, #4
-      bllt  2b
+      blt   2b
       
-      bl    play_sound
+      cmp   drawwhite, #0
+      bleq  play_sound
+  
+      cmp   drawwhite, #0
+      moveq drawwhite, #1
+      beq   1b
+
+      cmp   drawwhite, #1
+      moveq drawwhite, #0      
+
       mov   notes, #0
 
       sub   x, #1
@@ -538,7 +572,7 @@ play_spiral:
   .unreq     i        
   .unreq     direction
 
-  ldmfd sp!, {r0 - r13, pc}
+  ldmfd sp!, {r0 - r12, pc}
 
 
 @-----------------------------------------------------------------------------
@@ -568,3 +602,4 @@ move_dir:
   subeq   r2, #1
   moveq   pc, lr
 
+  bl      flash
