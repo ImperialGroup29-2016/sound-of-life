@@ -21,8 +21,13 @@ main:
 
 render:
     bl      sound_of_life
-    mov     r0, #0
-    bl      play_sound
+
+    @ Pause between ticks if playing sounds
+    ldr     r1, =sound_game_type
+    ldr     r1, [r1]
+    cmp     r1, #0 
+    movne   r0, #0
+    blne    play_sound
 
     stmfd   sp!,{r3}
     bl      read_check
