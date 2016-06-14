@@ -21,6 +21,8 @@ main:
 
 render:
     bl      sound_of_life
+    mov     r0, #0
+    bl      play_sound
 
     stmfd   sp!,{r3}
     bl      read_check
