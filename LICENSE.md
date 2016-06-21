@@ -1,4 +1,4 @@
-The MIT License (MIT)
+Sound of LIfe
 
 Copyright (c) 2016 Paul Crestez, Vincenzo Pandolfo, Oliver Stenbom, Martin Zlocha
 
