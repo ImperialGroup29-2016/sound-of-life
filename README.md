@@ -27,7 +27,7 @@ The game is written in ARM assembly for Raspberry Pi B, and should be used only 
 
 ### Controller and wiring
 
-![Controller setup](https://github.com/ImperialGroup29-2016/sound-of-life/images/bread.png "Controller setup")
+![Controller setup](https://raw.githubusercontent.com/ImperialGroup29-2016/sound-of-life/master/images/bread.png "Controller setup")
 
 For a quick install, see the image above which shows where each wire must be connected to.
 
